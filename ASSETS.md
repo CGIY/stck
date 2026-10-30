@@ -1,0 +1,9 @@
+# Décor STCK
+
+Image utilisée : `web/assets/forest-cartoon-v2.webp` (181 ko environ). Créée avec l’outil intégré ImageGen, puis convertie en WebP pour le site. Les PNG originaux restent conservés hors du dépôt.
+
+Référence d’ambiance : [Wrongderful](https://mcbaise.com/album/wrongderful). La composition générée est originale.
+
+## Prompt de la version retenue
+
+Edit target: the supplied forest app background. DRASTIC STYLE CHANGE requested: make this MUCH MUCH MORE CARTOON, like a vintage hand-inked psychedelic cartoon forest, bold charming graphic shapes. Remove the realistic botanical etching style, remove fussy leafy detail and weathered engraving texture, remove parchment gold wash. Use big rounded and wonky tree trunks with sweeping black/dark-brown contour lines, giant rounded simplified fern fronds, exaggerated squat red-orange mushrooms with large cream polka dots, stylized rolling roots, confident flat color fills and just two or three cel-shaded tones. Muted but clear petrol teal, dusty mint, olive and warm ivory, pops of tomato red. Analog 1970s underground comic / whimsical rubber-hose animation background mood. Every tree, leaf cluster, mushroom, root and cloud is a separate thick die-cut sticker silhouette, stacked with restrained dark contact shadows and thin warm cream cut edges, tactile flat paper patchwork, NOT a realistic 3D scene. Keep landscape 1536x1024 composition and generous uncluttered central clearing occupying middle 60%, pale dusty teal/ivory for app panels. Push bold cartoon silhouettes at left and right edges and bottom. NO TINY LEAF TEXTURE, NO realistic bark, NO engraving, NO watercolor landscape, NO photographic vegetation. No house, bridge, characters, text, logos or interface. New original artwork, not a copy of any album cover. It must immediately read as a playful hand-drawn cartoon with chunky outlines, not a decorative naturalistic forest.

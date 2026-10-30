@@ -1,66 +1,56 @@
 # Publication de STCK
 
-## Destination
+## Services
 
-- Dépôt privé : https://github.com/CGIY/stck
-- Organisation Supabase créée : STCK (`pkslvjmqlfyvpaadrogq`).
-- Région prévue : Paris (`eu-west-3`).
+- Site : https://cgiy.github.io/stck/
+- Dépôt public : https://github.com/CGIY/stck
+- Organisation Supabase : STCK (`pkslvjmqlfyvpaadrogq`).
+- Projet STCK : `udjigbhpusrovlzmzpdt`, Paris (`eu-west-3`).
 
-La connexion Supabase actuellement disponible ne permet pas d’accéder à cette organisation. La reconnecter en sélectionnant STCK avant toute opération distante. Aucun autre projet n’a besoin d’être modifié.
+Le code et les images sont publics avec l’accord du propriétaire. Les collections, collages et abonnements restent protégés par les règles RLS de Supabase. Aucun autre projet n’est utilisé.
 
-## 1. Base Supabase
+## Comptes
 
-Créer un projet STCK dans cette organisation, puis contrôler qu’il est sain et qu’il ne contient aucune table métier existante. Appliquer `supabase/migrations/20261030100716_stck_core.sql` une seule fois. Exécuter les conseillers de sécurité et vérifier les tables, les règles RLS et les fonctions avec des utilisateurs de test distincts.
+Deux comptes administrativement provisionnés et un espace partagé existent. Chaque personne entre son code STCK ; le client utilise ce code comme mot de passe avec un identifiant interne sans livraison d’e-mail. Les inscriptions publiques et connexions anonymes sont désactivées. Aucun SMTP n’est nécessaire.
 
-Les tables exposées ont toutes RLS activé. Les rôles publics n’ont pas de droit de mutation sur les espaces ou les tirages. Les opérations privilégiées des utilisateurs vérifient leur identité dans le schéma privé. Les opérations d’envoi sont réservées au rôle serveur.
+Les codes sont remis au propriétaire dans le fichier local `.private/Codes-STCK.txt`, protégé par les permissions du système. Ne jamais le publier, le mettre dans `dist/`, ni l’écrire dans les journaux. Changer un code nécessite une intervention administrateur. Le Site URL de Supabase n’intervient pas dans ce flux sans redirection.
 
-## 2. Connexion
+## Base
 
-Configurer l’adresse finale HTTPS dans **Authentication → URL Configuration**, comme Site URL et URL de redirection autorisée (`https://…/index.html`). Le client utilise le lien de connexion e-mail standard. Configurer un fournisseur SMTP pour un usage réel : le service e-mail par défaut de Supabase est limité et ne convient pas à une ouverture générale. Ne pas désactiver la validation des adresses pour contourner cette étape.
+Migrations appliquées dans l’ordre :
 
-## 3. Notifications
+1. `supabase/migrations/20261030100716_stck_core.sql`.
+2. `supabase/schedule.sql` (programmation des notifications).
+3. `supabase/migrations/20261030150446_stck_free_board.sql`.
+4. `supabase/migrations/20261030151214_stck_rare_odds.sql`.
 
-```sh
-node scripts/generate-push-config.mjs PROJECT_REF
-```
+Les tirages sont sérialisés par compte, identifiés par une clé de reprise, et limités à dix demandes par minute. Les exemplaires conservés sont plafonnés à trois par personne et par illustration. La probabilité rare est évaluée avant ce plafond : un rare supplémentaire peut donc être écarté quand trois sont déjà détenus.
 
-Cette commande écrit `.private/push-config.sql` avec des droits locaux restreints. Elle génère les clés Web Push et un secret distinct pour le déclenchement du service. Ne jamais ajouter ce fichier au dépôt, le placer dans `dist/`, ou afficher son contenu dans des journaux publics.
+Chaque collage identifie son propriétaire d’exemplaire et son numéro de copie. Le serveur vérifie le stock avant l’insertion. Les deux membres peuvent déplacer les exemplaires partagés ; l’auteur initial ne change pas.
 
-Exécuter ce fichier dans la base via un canal administrateur autorisé. Il crée uniquement la configuration du projet STCK et refuse de remplacer des clés existantes. Les clés sont stockées dans `stck_private.push_config`, sans accès utilisateur.
+## Notifications
 
-Déployer la fonction `push-dispatch` avec ses fichiers TypeScript, JavaScript, `deno.json` et `deno.lock` et la vérification JWT de la passerelle désactivée : **la fonction vérifie elle-même le secret Bearer dédié**. Ne pas utiliser une clé utilisateur ou publique à la place du secret. Appliquer ensuite `supabase/schedule.sql` pour appeler la fonction chaque minute.
+`push-dispatch` est déployée avec un secret Bearer dédié, vérifié par la fonction. La vérification JWT de la passerelle est désactivée pour cet appel serveur. Les clés Web Push et le secret de déclenchement sont dans le schéma privé, sans accès client.
 
-Contrôler l’historique Cron et les réponses `net._http_response`, puis inscrire un appareil depuis l’application. Ne pas insérer de fausse destination de notification. Vérifier un rappel, le désabonnement de l’appareil et la suppression d’un abonnement expiré. Les notifications restent désactivées par défaut.
+La tâche `stck-push-dispatch` tourne chaque minute. Son appel a été vérifié avec une réponse HTTP 200. Aucun appareil n’est inscrit automatiquement. L’utilisateur doit autoriser les notifications depuis STCK sur chacun de ses téléphones.
 
-Les annonces se publient côté administrateur dans `public.announcements` (`title`, `body`, `published_at`). Elles sont distribuées aux utilisateurs ayant activé les nouveautés pendant les 24 heures suivant leur publication. Garder le texte adapté à un écran verrouillé.
+Pour un nouveau déploiement indépendant, `scripts/generate-push-config.mjs PROJECT_REF` écrit la configuration privée sans remplacer les clés existantes. Ne pas régénérer les clés du projet actuel. Déployer les quatre fichiers de la fonction en spécifiant `deno.json` comme import map.
 
-## 4. Site
+Les annonces administrateur sont ajoutées dans `public.announcements` (`title`, `body`, `published_at`). Les notifications utilisent un texte discret, adapté à un écran verrouillé.
 
-Renseigner les variables de compilation :
+## Site et publication
 
-```text
-STCK_SUPABASE_URL=https://PROJECT_REF.supabase.co
-STCK_SUPABASE_KEY=clé publique publishable
-```
+GitHub Pages utilise GitHub Actions. Chaque mise à jour de `main`, ou un lancement manuel de « Publier STCK », exécute les tests, vérifie la fonction, compile le site et vérifie ses ressources avant de publier `dist/`.
 
-En local, `config.local.json` peut contenir les champs `supabaseUrl` et `supabaseKey` et reste ignoré par Git. Une clé `service_role` ou `sb_secret_…` ne doit jamais être utilisée pour compiler le site.
+`config.public.json` est publiable : URL Supabase et clé publishable uniquement. Les fichiers `.private/`, `.env*`, `config.local.json`, `node_modules/` et `dist/` sont exclus des sources publiées.
 
-Pour GitHub Pages, renseigner les deux variables dans les variables Actions du dépôt, activer Pages avec GitHub Actions, puis lancer manuellement « Publier STCK ». Le 30 octobre 2026, les réglages GitHub du dépôt indiquent que l’offre actuelle ne permet pas Pages pour un dépôt privé. Le choix entre un autre hébergement HTTPS et la publication du code et des images dans un dépôt public reste à valider. Ne pas modifier la visibilité du dépôt implicitement. Le dossier `dist/` est portable.
+## Contrôles d’exploitation
 
-Le workflow de publication exécute les tests, compile avec la vraie configuration, contrôle les ressources et publie seulement si ces étapes réussissent. Aucun déploiement de production n’est lancé par les simples poussées de code.
+- Vérifier l’adresse HTTPS, les planches, le collage et la pochette dans le sous-chemin `/stck/`.
+- Contrôler l’accès des deux comptes, le stock de copies et les reprises réseau.
+- Sur les téléphones : installer l’application, activer un rappel et les nouveautés, vérifier leur réception et la désactivation.
+- Examiner Cron, les réponses `net._http_response`, les journaux et les conseillers Supabase sans afficher de secrets ni de destinations d’abonnement.
 
-## 5. Contrôle final
+Les avis RLS sans politique dans le schéma privé correspondent à un refus d’accès volontaire. L’extension `pg_net` est fournie non déplaçable par Supabase. L’API `push_public_key` est une fonction privilégiée contrôlée qui ne retourne que la clé Web Push publique après vérification de la connexion. Ces choix doivent être revus en cas d’évolution du modèle d’accès.
 
-1. Vérifier le site depuis son adresse publique et dans le sous-chemin final.
-2. Se connecter avec deux comptes, créer puis rejoindre un espace par invitation.
-3. Déplacer un sticker, recharger la page et vérifier la synchronisation sur le second appareil.
-4. Ouvrir une pochette ; vérifier qu’une reprise réseau ne produit pas un autre tirage.
-5. Installer STCK sur un iPhone réel, autoriser les notifications à partir du bouton, tester le rappel et une annonce, puis désactiver les notifications sur cet appareil.
-6. Repasser les conseillers Supabase et examiner les journaux d’échec sans exposer les secrets ni les abonnements.
-
-## Références
-
-- [Supabase : connexion par e-mail](https://supabase.com/docs/guides/auth/auth-email-passwordless)
-- [Supabase : sécuriser l’API](https://supabase.com/docs/guides/api/securing-your-api)
-- [Supabase : planifier les Edge Functions](https://supabase.com/docs/guides/functions/schedule-functions)
-- [Apple : Web Push](https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers)
+Avis du conseiller : [schéma des extensions](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public), [fonction publique privilégiée](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [RLS privée sans politique](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy). La [vérification des mots de passe compromis](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) n’est pas activée ; les deux codes ont été générés aléatoirement et les inscriptions restent fermées.

@@ -269,6 +269,7 @@
   async function prepareSticker() {
     const token=++decodeToken;
     if (!window.STCK) throw new Error('Un instant, la bibliothèque se prépare.');
+    $('prize').classList.remove('is-excess');
     selected=await window.STCK.requestDraw();
     const image=new Image();image.src=selected.src;image.alt='';assetError=false;
     try { await image.decode(); if(token!==decodeToken)return;
@@ -306,7 +307,8 @@
     $('prize').removeAttribute('aria-hidden');
     $('prize').querySelector('img').alt=selected.title;
     $('revealedTitle').textContent=selected.title;
-    $('revealedRarity').textContent=selected.rare?'Édition brillante':'Collection';
+    $('revealedRarity').textContent = selected.kept === false ? 'Déjà 3 exemplaires · ce doublon disparaît' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 3` : selected.rare ? 'Édition rare · 1 %' : 'Nouveau sticker';
+    $('prize').classList.toggle('is-excess', selected.kept === false);
     $('revealInfo').hidden=false;
     if(resetFocus)$('again').focus({preventScroll:true});
   }

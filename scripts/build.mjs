@@ -2,9 +2,12 @@ import fs from "node:fs/promises";
 import { build } from "esbuild";
 import sharp from "sharp";
 const preview = process.argv.includes("--preview");
-let local = {};
+let local = JSON.parse(await fs.readFile("config.public.json", "utf8"));
 try {
-  local = JSON.parse(await fs.readFile("config.local.json", "utf8"));
+  local = {
+    ...local,
+    ...JSON.parse(await fs.readFile("config.local.json", "utf8")),
+  };
 } catch (e) {
   if (e.code !== "ENOENT") throw e;
 }

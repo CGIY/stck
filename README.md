@@ -1,23 +1,21 @@
 # STCK
 
-Une bibliothèque de stickers à partager à deux : quatre grimoires, une table de collage et une pochette animée.
+Des planches de stickers à partager à deux, dans un décor de forêt cartoon en papier découpé.
 
-Le projet est indépendant des autres applications. Le prototype d’origine et ses archives ne font pas partie de ce dépôt.
+[Ouvrir STCK](https://cgiy.github.io/stck/) · [Publication et exploitation](DEPLOYMENT.md)
 
-## État de la publication
+## Utilisation
 
-Le code, les images optimisées, la base Supabase, le service de notifications et les workflows GitHub sont préparés. La base distante et les notifications ne sont pas encore activées : la connexion Supabase doit autoriser la nouvelle organisation **STCK**. L’hébergement public reste aussi à choisir : GitHub Pages n’est pas disponible pour ce dépôt privé avec l’offre actuelle.
+- Chacun entre son code personnel. Les deux comptes rejoignent le même espace ; aucune adresse e-mail n’est demandée.
+- Les quatre planches se superposent. Glisser leur bord ou leur titre, toucher une flèche, ou utiliser les onglets permet de changer de planche.
+- La surface de collage est libre : les stickers se superposent et peuvent dépasser du cadre. Un repère A/B indique qui a posé chaque exemplaire. Ce repère reste identique quand l’autre personne le déplace.
+- Chaque personne conserve au maximum trois exemplaires d’un même sticker. Chaque exemplaire peut être collé séparément ; le compteur indique ceux qui restent sur la planche. Ramener son sticker sur les planches le range à nouveau.
+- Une pochette donne un sticker rare avec une probabilité de **1 %**, répartie entre les huit rares. Les 24 stickers courants se partagent les 99 % restants. Un quatrième exemplaire apparaît puis disparaît avec une explication ; il ne remplace aucun sticker conservé et ne relance pas le tirage.
+- Le libellé « Acheter une pochette » ouvre la pochette animée. Aucun paiement ni système de monnaie n’est intégré à cette version.
+- Les découvertes sont privées. Seuls les stickers effectivement collés sont partagés.
+- Rappel quotidien à l’heure choisie et notifications de nouveautés, facultatifs par appareil. Sur iPhone : ajouter STCK à l’écran d’accueil depuis Safari, l’ouvrir, puis activer les notifications dans « Mon espace ».
 
-## Fonctionnement
-
-- Connexion par lien envoyé par e-mail.
-- Espace à deux, avec invitation à usage unique valable 48 heures.
-- Collage sauvegardé par sticker ; synchronisation toutes les 15 secondes lorsque la page est visible. Une modification en attente est conservée sur l’appareil et retentée après une coupure de réseau.
-- Tirage des pochettes enregistré côté serveur. Une requête répétée conserve le même sticker. Le catalogue reste consultable en entier ; les stickers découverts sont signalés.
-- Notifications facultatives sur chaque appareil : rappel quotidien à l’heure choisie et annonces de nouveautés. Les messages ne contiennent pas les détails des stickers.
-- Application installable sur téléphone. Sur iPhone, ouvrir le site dans Safari, l’ajouter à l’écran d’accueil puis activer les notifications dans « Mon espace ».
-
-## Aperçu local
+## Développement
 
 Node.js 24 est utilisé pour les vérifications.
 
@@ -25,34 +23,28 @@ Node.js 24 est utilisé pour les vérifications.
 npm ci
 npm test
 npm run check:edge
-node scripts/build.mjs --preview
+npm run build
+node scripts/check-assets.mjs
 npm run preview
 ```
 
-L’aperçu est accessible à `http://127.0.0.1:4173`. Sans configuration Supabase, le collage reste local et les pochettes sont des démonstrations explicitement signalées.
+L’aperçu est accessible à `http://127.0.0.1:4173`. Le bouton « Explorer l’aperçu » conserve un collage de démonstration sur l’appareil, séparé des deux comptes réels. Les tirages de démonstration ne modifient pas leur collection.
 
-## Publication
+`config.public.json` contient uniquement l’URL du projet et sa clé publique. Les variables `STCK_SUPABASE_URL` / `STCK_SUPABASE_KEY` et le fichier ignoré `config.local.json` permettent une surcharge. Une clé serveur est refusée à la compilation.
 
-Voir [DEPLOYMENT.md](DEPLOYMENT.md). La compilation de production refuse une configuration Supabase absente ou une clé serveur. Le navigateur reçoit uniquement l’URL de l’API et sa clé publique.
+## Organisation
 
-```sh
-npm run build
-node scripts/check-assets.mjs
-```
+- `web/` : interface, animations, images WebP, installation et notifications.
+- `src/` : comptes, stocks, sauvegarde et préférences.
+- `supabase/migrations/` : schéma et accès aux données.
+- `supabase/functions/push-dispatch/` : envoi Web Push.
+- `tests/` : isolation des comptes, tirages, exemplaires et notifications.
+- `.github/workflows/` : contrôles et publication GitHub Pages après réussite des tests.
 
-Le dossier `dist/` est un site statique compatible avec un hébergement HTTPS. Les chemins sont relatifs, y compris le service worker, pour fonctionner dans un sous-dossier comme `/stck/`.
+Le prototype d’origine reste séparé. Les codes personnels et secrets sont dans un dossier local `.private/`, exclu du dépôt et du site.
 
-## Organisation du code
+## Vérifications et limites
 
-- `web/` : interface, animations, images WebP, manifeste et service worker.
-- `src/` : connexion, sauvegarde, invitations et préférences de notification.
-- `supabase/migrations/` : structure, droits d’accès et fonctions de la base.
-- `supabase/functions/push-dispatch/` : envoi Web Push avec contrôle des destinations.
-- `tests/` : tests Postgres avec PGlite et tests de validation des notifications.
-- `.github/workflows/` : contrôles automatiques et publication manuelle GitHub Pages.
+Les tests couvrent l’isolation, les invitations internes, les reprises de tirage, les préférences, la file d’envoi, le changement d’heure, les dépassements du cadre, l’auteur du collage, le seuil de 1 %, les trois exemplaires et le refus des exemplaires forgés. Les deux codes ont été vérifiés contre Supabase. Le service de notifications et sa programmation ont répondu correctement.
 
-## Vérification et limites
-
-Les tests couvrent l’isolation entre comptes, les invitations, l’idempotence des tirages, les préférences, la file d’envoi et les rappels autour de minuit et du changement d’heure. La fonction Web Push est également vérifiée par Deno. L’interface, le rechargement du collage et les ressources sont vérifiés localement.
-
-La réception réelle d’une notification sur iPhone, l’authentification par e-mail et l’isolation sur le projet Supabase distant doivent être vérifiées après déploiement. Les notifications sont envoyées avec reprise sur erreur ; un crash après un envoi peut entraîner une répétition, regroupée par le même identifiant de notification. La synchronisation simultanée du même sticker suit la dernière écriture reçue par le serveur. La navigation hors connexion affiche une page de reprise, sans mettre en cache les données de compte.
+La réception réelle d’une notification doit encore être vérifiée sur les téléphones, une fois leurs notifications autorisées. Le collage se synchronise toutes les 15 secondes quand la page est visible ; une modification en attente reprend après une coupure de réseau. En cas de déplacement simultané du même exemplaire, la dernière écriture reçue l’emporte. L’application affiche une page dédiée hors connexion ; elle ne met pas la collection privée en cache dans le service worker.

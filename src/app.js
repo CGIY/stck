@@ -11,12 +11,25 @@ let user = null,
   syncing = false,
   generation = 0,
   poll = null;
+let identityVersion = 0,
+  statusTimer;
+let previewMode = false,
+  inventory = new Map(),
+  boardRows = [],
+  lastDraw = null;
+const placementKey = (row) =>
+  [row.copy_owner || "preview", row.sticker_id, row.copy_no || 1].join(":");
 const status = document.createElement("p");
 status.className = "save-status";
 status.setAttribute("role", "status");
 document.body.append(status);
 function say(text) {
   status.textContent = text;
+  status.dataset.idle = "false";
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => {
+    status.dataset.idle = "true";
+  }, 3400);
   document
     .querySelector(".account-feedback")
     ?.replaceChildren(document.createTextNode(text));
@@ -24,20 +37,22 @@ function say(text) {
 const button = document.createElement("button");
 button.className = "account-button";
 button.type = "button";
-button.textContent = "Mon espace";
+button.setAttribute("aria-label", "Mon espace");
+button.title = "Mon espace";
+button.innerHTML =
+  '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>';
 (
   document.querySelector(".app-header") || document.querySelector(".topbar")
 ).append(button);
 const dialog = document.createElement("dialog");
 dialog.className = "account-dialog";
-dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button><h1>Ton espace STCK</h1>
-<p class="account-state"></p><p class="account-feedback" role="status"></p><section data-view="login"><p>Retrouve tes collages et tes pochettes sur tes appareils.</p>
-<form id="login-form"><label>Ton adresse e-mail<input name="email" type="email" autocomplete="email" required></label><button>Recevoir un lien de connexion</button></form>
+dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button><h1>Bienvenue chez vous.</h1>
+<p class="account-state"></p><p class="account-feedback" role="status"></p><section data-view="login"><p>Un code, et vos stickers se retrouvent.</p>
+<form id="login-form"><label>Ton code personnel<input name="code" type="password" autocomplete="current-password" autocapitalize="characters" spellcheck="false" placeholder="STCK-A-…" required></label><button>Entrer</button></form>
+<p class="login-note">À garder pour te connecter sur un autre appareil.</p>
 <button id="demo" class="secondary">Explorer l’aperçu</button></section>
-<section data-view="setup" hidden><p>Crée votre bibliothèque, puis invite la personne avec qui tu veux la partager.</p>
-<form id="space-form"><label>À gauche<input name="left" maxlength="30" value="Moi" required></label><label>À droite<input name="right" maxlength="30" value="Toi" required></label><button>Créer notre espace</button></form>
-<form id="join-form"><label>Code d’invitation<input name="code" autocomplete="off" required></label><button class="secondary">Rejoindre un espace</button></form></section>
-<section data-view="account" hidden><p id="space-description"></p><button id="invite" class="secondary">Créer une invitation</button><p id="invite-code"></p>
+<section data-view="setup" hidden><p>Votre espace est en cours de préparation. Recharge la page dans un instant.</p></section>
+<section data-view="account" hidden><p id="space-description"></p>
 <h2>Notifications</h2><p id="push-info"></p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
 <form id="preferences-form"><label class="check"><input name="daily" type="checkbox">Rappel quotidien</label><label>À quelle heure ?<input name="time" type="time" value="18:30" required></label><label class="check"><input name="news" type="checkbox">Les nouveautés STCK</label><p id="timezone-label"></p><button>Enregistrer mes préférences</button></form>
 <h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button></section>`;
@@ -89,73 +104,36 @@ $("#login-form").onsubmit = async (e) => {
     return say("La connexion sera disponible après la mise en ligne.");
   busy(e.target, true);
   try {
-    const email = new FormData(e.target).get("email");
+    const code = String(new FormData(e.target).get("code"))
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
+    const match = /^STCK-([AB])-(?:[A-F0-9]{4}-){3}[A-F0-9]{4}$/.exec(code);
+    if (!match)
+      throw Error("Ce code n’est pas reconnu. Vérifie-le puis réessaie.");
     await checked(
-      client.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: new URL("index.html", location.href).href },
+      client.auth.signInWithPassword({
+        email: `participant-${match[1].toLowerCase()}@stck.invalid`,
+        password: code,
       }),
     );
-    say("Lien envoyé. Ouvre-le sur cet appareil pour te connecter.");
+    e.target.reset();
+    say("Connexion réussie.");
   } catch (error) {
-    handleError(error);
+    handleError(
+      error?.message === "Invalid login credentials"
+        ? Error("Ce code n’est pas reconnu. Vérifie-le puis réessaie.")
+        : error,
+    );
   } finally {
     busy(e.target, false);
   }
 };
 $("#demo").onclick = () => {
   dialog.close();
-  say("Aperçu : tes changements restent sur cet appareil.");
-};
-$("#space-form").onsubmit = async (e) => {
-  e.preventDefault();
-  busy(e.target, true);
-  try {
-    const d = new FormData(e.target);
-    await checked(
-      client.rpc("create_space", {
-        p_left: d.get("left"),
-        p_right: d.get("right"),
-      }),
-    );
-    await loadSpace();
-    dialog.close();
-  } catch (error) {
-    handleError(error);
-  } finally {
-    busy(e.target, false);
-  }
-};
-$("#join-form").onsubmit = async (e) => {
-  e.preventDefault();
-  busy(e.target, true);
-  try {
-    await checked(
-      client.rpc("join_space", {
-        p_token: new FormData(e.target).get("code").trim(),
-      }),
-    );
-    await loadSpace();
-    dialog.close();
-  } catch (error) {
-    handleError(error);
-  } finally {
-    busy(e.target, false);
-  }
-};
-$("#invite").onclick = async () => {
-  try {
-    const token = await checked(client.rpc("invite_partner"));
-    $("#invite-code").textContent = "Code valable 48 h : " + token;
-    try {
-      await navigator.clipboard.writeText(token);
-      say("Code copié. Partage-le avec la personne à inviter.");
-    } catch {
-      say("Copie le code pour inviter ton partenaire.");
-    }
-  } catch (error) {
-    handleError(error);
-  }
+  startPreview();
+  restoreBoard(readLocal());
+  say("Aperçu des planches de stickers.");
 };
 $("#logout").onclick = async () => {
   try {
@@ -190,56 +168,160 @@ function cache(rows) {
     say("Le stockage de cet appareil est indisponible.");
   }
 }
+function setDiscoveries(ids = []) {
+  inventory = new Map();
+  ids.forEach((id) =>
+    inventory.set(id, Math.min(3, (inventory.get(id) || 0) + 1)),
+  );
+  document.dispatchEvent(new CustomEvent("stck:discoveries", { detail: ids }));
+  document.body.dataset.collectionReady = "true";
+  refreshStock();
+}
+function refreshStock() {
+  const owner = user?.id || "preview";
+  const stock = catalog.map((item) => {
+    const count = inventory.get(item.id) || 0;
+    const used = new Set(
+      boardRows
+        .filter(
+          (row) =>
+            !row.removed &&
+            row.sticker_id === item.id &&
+            (row.copy_owner || "preview") === owner,
+        )
+        .map((row) => row.copy_no || 1),
+    );
+    return {
+      sticker_id: item.id,
+      copy_owner: owner,
+      count,
+      available: Array.from({ length: count }, (_, i) => i + 1).filter(
+        (n) => !used.has(n),
+      ),
+    };
+  });
+  document.dispatchEvent(new CustomEvent("stck:stock", { detail: stock }));
+}
+function startPreview() {
+  previewMode = true;
+  sessionStorage.setItem("stck:preview-mode", "true");
+  let counts = {};
+  try {
+    counts = JSON.parse(sessionStorage.getItem("stck:preview-stock") || "{}");
+  } catch {}
+  setDiscoveries(
+    catalog.flatMap((item) =>
+      Array(Math.min(3, counts[item.id] || 1)).fill(item.id),
+    ),
+  );
+  restoreBoard(readLocal());
+}
+function clearIdentity() {
+  identityVersion++;
+  previewMode = false;
+  document.dispatchEvent(new Event("stck:identity"));
+  setDiscoveries([]);
+  restoreBoard([]);
+  $("#space-description").textContent = "";
+  $("#inbox").replaceChildren();
+}
 const bridge = {
   catalog,
   ready: false,
   requestDraw: async () => {
-    if (!client)
-      return catalog[
-        crypto.getRandomValues(new Uint32Array(1))[0] % catalog.length
-      ];
+    if (!client || previewMode) {
+      const values = crypto.getRandomValues(new Uint32Array(2));
+      const rare = values[0] / 4294967296 < 0.01;
+      const pool = catalog.filter((item) => item.rare === rare);
+      const item = pool[Math.floor((values[1] / 4294967296) * pool.length)];
+      const count = inventory.get(item.id) || 0;
+      lastDraw = {
+        sticker_id: item.id,
+        kept: count < 3,
+        quantity: Math.min(3, count + 1),
+      };
+      inventory.set(item.id, lastDraw.quantity);
+      sessionStorage.setItem(
+        "stck:preview-stock",
+        JSON.stringify(Object.fromEntries(inventory)),
+      );
+      return { ...item, ...lastDraw };
+    }
     if (!user || !space) {
       show();
-      throw Error(
-        "Connecte-toi et choisis un espace pour conserver tes pochettes.",
-      );
+      throw Error("Entre ton code pour conserver tes pochettes.");
     }
-    const key = "stck:pending-draw:" + user.id;
+    const uid = user.id,
+      version = identityVersion;
+    const key = "stck:pending-draw:" + uid;
     let request = sessionStorage.getItem(key);
     if (!request) {
       request = crypto.randomUUID();
       sessionStorage.setItem(key, request);
     }
-    const id = await checked(client.rpc("open_pouch", { p_request: request }));
+    lastDraw = await checked(client.rpc("draw_pouch", { p_request: request }));
+    const id = lastDraw.sticker_id;
+    if (uid !== user?.id || version !== identityVersion)
+      throw Error("Le compte a changé. Rouvre ta pochette.");
     const item = catalog.find((x) => x.id === id);
     if (!item) throw Error("Sticker inconnu. Recharge l’application.");
-    return item;
+    return { ...item, ...lastDraw };
   },
   drawRevealed: () => {
-    if (!client) {
-      say(
-        "Sticker aperçu · connecte-toi après la mise en ligne pour le conserver.",
-      );
+    if (!client || previewMode) {
+      say("Aperçu · aucun tirage dans ta vraie collection.");
       return;
     }
     if (user) sessionStorage.removeItem("stck:pending-draw:" + user.id);
-    say("Sticker conservé dans tes découvertes.");
+    say(
+      lastDraw?.kept
+        ? lastDraw.quantity > 1
+          ? `${lastDraw.quantity} exemplaires dans ta collection.`
+          : "Nouveau sticker dans ta collection."
+        : "Déjà 3 exemplaires : ce doublon disparaît.",
+    );
     refreshDiscoveries().catch(handleError);
   },
 };
 window.STCK = bridge;
 function restoreBoard(rows) {
-  document.dispatchEvent(new CustomEvent("stck:restore", { detail: rows }));
+  boardRows = rows;
+  document.dispatchEvent(
+    new CustomEvent("stck:restore", { detail: rows.map(decoratePlacement) }),
+  );
+  refreshStock();
+}
+function decoratePlacement(row) {
+  const author = row.placed_by;
+  return {
+    ...row,
+    ownCopy: previewMode || row.copy_owner === user?.id,
+    authorMark: author
+      ? author === space?.owner_id
+        ? "A"
+        : "B"
+      : previewMode
+        ? "A"
+        : "",
+    authorLabel: author
+      ? author === user?.id
+        ? "Posé par toi"
+        : "Posé par l’autre participant"
+      : previewMode
+        ? "Posé dans l’aperçu"
+        : "",
+  };
 }
 async function loadSpace() {
-  const uid = user.id;
+  const uid = user.id,
+    version = identityVersion;
   const data = await checked(
     client
       .from("spaces")
       .select("id,owner_id,partner_id,left_label,right_label")
       .maybeSingle(),
   );
-  if (user?.id !== uid) return;
+  if (user?.id !== uid || version !== identityVersion) return;
   space = data;
   if (!space) {
     view("setup");
@@ -248,21 +330,14 @@ async function loadSpace() {
   }
   view("account");
   bridge.ready = true;
-  const zones = document.querySelectorAll(".drop-half");
-  [space.left_label, space.right_label].forEach((label, i) => {
-    if (zones[i]) {
-      zones[i].querySelector("strong").textContent = label;
-      zones[i].setAttribute("aria-label", "Zone de collage de " + label);
-    }
-  });
-  restoreBoard(
-    await checked(
-      client
-        .from("placements")
-        .select("sticker_id,zone,x,y")
-        .eq("space_id", space.id),
-    ),
+  const rows = await checked(
+    client
+      .from("placements")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no")
+      .eq("space_id", space.id),
   );
+  if (uid !== user?.id || version !== identityVersion) return;
+  restoreBoard(rows);
   await refreshDiscoveries();
   await refreshAccount();
   clearInterval(poll);
@@ -279,38 +354,71 @@ async function loadSpace() {
 }
 async function reloadBoard() {
   if (!space || !user) return;
-  const sid = space.id;
+  const sid = space.id,
+    uid = user.id,
+    version = identityVersion;
   const rows = await checked(
-    client.from("placements").select("sticker_id,zone,x,y").eq("space_id", sid),
+    client
+      .from("placements")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no")
+      .eq("space_id", sid),
   );
-  if (space?.id === sid && !pending.size && !syncing) restoreBoard(rows);
+  if (
+    space?.id === sid &&
+    user?.id === uid &&
+    version === identityVersion &&
+    !pending.size &&
+    !syncing
+  )
+    restoreBoard(rows);
 }
 async function refreshDiscoveries() {
   if (!user) return;
+  const uid = user.id,
+    version = identityVersion;
   const draws = await checked(
     client
       .from("pouch_draws")
       .select("sticker_id")
+      .eq("user_id", uid)
+      .eq("kept", true)
       .order("created_at", { ascending: false })
       .limit(2000),
   );
+  if (user?.id !== uid || version !== identityVersion) return;
   const owned = new Set(draws.map((x) => x.sticker_id));
-  document.querySelectorAll(".peel-sticker").forEach((el) => {
-    el.dataset.discovered = String(owned.has(el.dataset.stickerId));
-  });
+  setDiscoveries(draws.map((x) => x.sticker_id));
   $("#space-description").textContent =
-    `${owned.size} / 32 stickers découverts · ${space?.partner_id ? "Bibliothèque à deux" : "Ton espace est prêt à être partagé"}`;
+    `${owned.size} stickers dans ta collection privée · table partagée`;
 }
 document.addEventListener("stck:placement", (event) => {
   const row = event.detail;
-  if (!user || !space) {
-    const rows = readLocal().filter((x) => x.sticker_id !== row.sticker_id);
-    if (!row.removed) rows.push(row);
-    cache(rows);
-    say("Collage conservé sur cet appareil");
+  if (client && !previewMode && (!user || !space)) {
+    show();
+    restoreBoard([]);
     return;
   }
-  pending.set(row.sticker_id, { ...row, version: ++generation });
+  if (!user || !space) {
+    const rows = readLocal().filter(
+      (x) => placementKey(x) !== placementKey(row),
+    );
+    if (!row.removed) rows.push(row);
+    cache(rows);
+    restoreBoard(rows);
+    say("Aperçu conservé sur cet appareil");
+    return;
+  }
+  const decorated = decoratePlacement({
+    ...row,
+    placed_by: row.placed_by || user.id,
+  });
+  document.dispatchEvent(
+    new CustomEvent("stck:restore-one", { detail: decorated }),
+  );
+  boardRows = boardRows.filter((x) => placementKey(x) !== placementKey(row));
+  if (!row.removed) boardRows.push(decorated);
+  refreshStock();
+  pending.set(placementKey(row), { ...decorated, version: ++generation });
   savePending();
   flush().catch(handleError);
 });
@@ -327,31 +435,46 @@ function savePending() {
 async function flush() {
   if (syncing || !user || !space || !pending.size) return;
   syncing = true;
+  const uid = user.id,
+    sid = space.id,
+    version = identityVersion;
   say("Sauvegarde…");
   try {
     for (const row of [...pending.values()]) {
+      if (user?.id !== uid || space?.id !== sid || version !== identityVersion)
+        return;
+      const target = (query) =>
+        query
+          .eq("space_id", sid)
+          .eq("sticker_id", row.sticker_id)
+          .eq("copy_owner", row.copy_owner)
+          .eq("copy_no", row.copy_no);
       if (row.removed)
+        await checked(target(client.from("placements").delete()));
+      else if (row.copy_owner !== uid)
         await checked(
-          client
-            .from("placements")
-            .delete()
-            .eq("space_id", space.id)
-            .eq("sticker_id", row.sticker_id),
+          target(
+            client.from("placements").update({ zone: 0, x: row.x, y: row.y }),
+          ),
         );
       else
         await checked(
           client
             .from("placements")
             .upsert({
-              space_id: space.id,
+              space_id: sid,
               sticker_id: row.sticker_id,
-              zone: row.zone,
+              copy_owner: uid,
+              copy_no: row.copy_no,
+              zone: 0,
               x: row.x,
               y: row.y,
             }),
         );
-      if (pending.get(row.sticker_id)?.version === row.version)
-        pending.delete(row.sticker_id);
+      if (user?.id !== uid || space?.id !== sid || version !== identityVersion)
+        return;
+      if (pending.get(placementKey(row))?.version === row.version)
+        pending.delete(placementKey(row));
       savePending();
     }
     say(pending.size ? "Sauvegarde en cours…" : "Collage sauvegardé");
@@ -409,17 +532,15 @@ async function enablePush() {
   const data = subscription.toJSON();
   try {
     await checked(
-      client
-        .from("push_subscriptions")
-        .upsert(
-          {
-            user_id: user.id,
-            endpoint: data.endpoint,
-            p256dh: data.keys.p256dh,
-            auth: data.keys.auth,
-          },
-          { onConflict: "endpoint" },
-        ),
+      client.from("push_subscriptions").upsert(
+        {
+          user_id: user.id,
+          endpoint: data.endpoint,
+          p256dh: data.keys.p256dh,
+          auth: data.keys.auth,
+        },
+        { onConflict: "endpoint" },
+      ),
     );
   } catch (error) {
     if (created) await subscription.unsubscribe();
@@ -451,15 +572,13 @@ $("#preferences-form").onsubmit = async (e) => {
   try {
     const d = new FormData(e.target);
     await checked(
-      client
-        .from("notification_preferences")
-        .upsert({
-          user_id: user.id,
-          daily: d.has("daily"),
-          news: d.has("news"),
-          reminder_time: d.get("time"),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        }),
+      client.from("notification_preferences").upsert({
+        user_id: user.id,
+        daily: d.has("daily"),
+        news: d.has("news"),
+        reminder_time: d.get("time"),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }),
     );
     say("Préférences enregistrées.");
   } catch (error) {
@@ -470,7 +589,10 @@ $("#preferences-form").onsubmit = async (e) => {
 };
 async function refreshAccount() {
   if (!user) return;
-  $(".account-state").textContent = user.email;
+  const uid = user.id,
+    version = identityVersion;
+  $(".account-state").textContent =
+    user.user_metadata?.display_name || "Mon compte";
   $("#push-info").textContent = pushSupport();
   $("#timezone-label").textContent =
     "Heure locale : " + Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -485,13 +607,13 @@ async function refreshAccount() {
         .limit(20),
     ),
   ]);
+  if (user?.id !== uid || version !== identityVersion) return;
   const form = $("#preferences-form");
   if (preferences) {
     form.elements.daily.checked = preferences.daily;
     form.elements.news.checked = preferences.news;
     form.elements.time.value = preferences.reminder_time.slice(0, 5);
   }
-  $("#invite").hidden = space.owner_id !== user.id || !!space.partner_id;
   $("#inbox").replaceChildren();
   if (!notifications.length) {
     const li = document.createElement("li");
@@ -517,6 +639,7 @@ async function refreshAccount() {
   }
 }
 async function init() {
+  clearIdentity();
   if ("serviceWorker" in navigator && location.protocol !== "file:")
     navigator.serviceWorker
       .register("./sw.js")
@@ -534,6 +657,7 @@ async function init() {
     if (event === "SIGNED_OUT") {
       user = null;
       space = null;
+      clearIdentity();
       pending.clear();
       clearInterval(poll);
       bridge.ready = false;
@@ -541,21 +665,27 @@ async function init() {
       view("login");
       show();
     } else if (session?.user?.id !== user?.id) {
+      clearIdentity();
       location.reload();
     }
   });
+  if (!user && sessionStorage.getItem("stck:preview-mode") === "true") {
+    startPreview();
+    return;
+  }
   if (!user) {
     view("login");
     show();
-    restoreBoard(readLocal());
+    restoreBoard([]);
     return;
   }
+  sessionStorage.removeItem("stck:preview-mode");
   await loadSpace();
   if (space) {
     try {
       pending = new Map(
         JSON.parse(localStorage.getItem(pendingKey()) || "[]").map((row) => [
-          row.sticker_id,
+          placementKey(row),
           row,
         ]),
       );
@@ -563,10 +693,12 @@ async function init() {
         0,
         ...[...pending.values()].map((row) => row.version || 0),
       );
-      for (const row of pending.values())
-        document.dispatchEvent(
-          new CustomEvent("stck:restore-one", { detail: row }),
-        );
+      const merged = new Map(boardRows.map(row => [placementKey(row),row]));
+      for (const row of pending.values()) {
+        if (row.removed) merged.delete(placementKey(row));
+        else merged.set(placementKey(row),row);
+      }
+      restoreBoard([...merged.values()]);
     } catch {
       pending = new Map();
     }

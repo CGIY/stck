@@ -1,7 +1,7 @@
 (() => {
   const stage = document.getElementById('peelStage');
   const dropTarget = document.getElementById('dropTarget');
-  const dropZones = [...(dropTarget?.querySelectorAll('.drop-half') || [])];
+  const dropZones = dropTarget ? [dropTarget] : [];
   const collectionWindow = document.getElementById('collection-window');
   const collectionTitle = document.getElementById('collectionTitle');
   const tabs = [...document.querySelectorAll('.collection-tab')];
@@ -34,13 +34,14 @@
     clearTimeout(captionTimer);captionState=state;
     caption.textContent=state.button.getAttribute('aria-label').replace(/, décoller et déplacer$/,'');
     caption.hidden=false;positionCaption();
-    captionTimer=setTimeout(hideCaption,3200);
+    captionTimer=setTimeout(hideCaption,2400);
   }
   hideCaption();
   window.addEventListener('scroll',hideCaption,{passive:true});
   window.addEventListener('resize',hideCaption);
   document.addEventListener('stck:page',hideCaption);
   document.addEventListener('stck:library',hideCaption);
+  document.addEventListener('stck:identity',hideCaption);
 
   const logoCut = document.getElementById('logoCutPath');
   const logoFold = document.getElementById('logoFold');
@@ -59,12 +60,12 @@
       logoCut.setAttribute('d', depth < .2 ? 'M-10 -10H234V110H-10Z' : `M-10 -10H${x}V8L216 ${y}H234V110H-10Z`);
       logoFold.setAttribute('d', depth < .2 ? '' : `M${x} 8 Q${x-2} ${y+2} 216 ${y}Z`);
     }
-    if (!reducedMotion && !document.hidden) logoFrame = requestAnimationFrame(animateLogo);
+    // The logo rests while idle; motion belongs to the paper being handled.
   }
   animateLogo(0);
   document.addEventListener('visibilitychange', () => {
     cancelAnimationFrame(logoFrame);
-    if (!document.hidden) animateLogo(performance.now());
+    if (!document.hidden) animateLogo(0);
   });
 
   function transformCorner(context, corner) {
@@ -343,12 +344,8 @@
     const toleranceY = stickerRect.height * .2;
     return dropZones.find((zone) => {
       const rect = zone.getBoundingClientRect();
-      const centerInside = centerX >= rect.left && centerX <= rect.right && centerY >= rect.top && centerY <= rect.bottom;
-      const withinOverflow = stickerRect.left >= rect.left - toleranceX
-        && stickerRect.right <= rect.right + toleranceX
-        && stickerRect.top >= rect.top - toleranceY
-        && stickerRect.bottom <= rect.bottom + toleranceY;
-      return centerInside && withinOverflow;
+      return centerX >= rect.left - toleranceX && centerX <= rect.right + toleranceX
+        && centerY >= rect.top - toleranceY && centerY <= rect.bottom + toleranceY;
     }) || null;
   }
 
@@ -369,7 +366,7 @@
     gestureState.offsetX = gestureState.startX - stickerRect.left;
     gestureState.offsetY = gestureState.startY - stickerRect.top;
     state.button.dataset.dragging = 'true';
-    // Keep the same dimensions when leaving the book's responsive selectors.
+    // Keep the same dimensions when leaving the sheet's responsive selectors.
     state.button.style.width = `${state.button.offsetWidth}px`;
     state.button.style.height = `${state.button.offsetHeight}px`;
     state.button.style.setProperty('--lift-rotation', `${state.corner % 2 ? 3 : -3}deg`);
@@ -397,8 +394,8 @@
 
     if (current.dragging) {
       const stageRect = stage.getBoundingClientRect();
-      const overflowX = state.button.offsetWidth * .2;
-      const overflowY = state.button.offsetHeight * .2;
+      const overflowX = state.button.offsetWidth * .7;
+      const overflowY = state.button.offsetHeight * .7;
       const maxLeft = Math.max(-overflowX, stage.clientWidth - state.button.offsetWidth + overflowX);
       const maxTop = Math.max(-overflowY, stage.clientHeight - state.button.offsetHeight + overflowY);
       const left = clamp(event.clientX - stageRect.left - current.offsetX, -overflowX, maxLeft);
@@ -427,22 +424,16 @@
     const destinationZone = current.dragging && !returnedHome ? findDropZone(state) : null;
     if (!current.dragging) {
       flatten(state);
+      if (!cancelled) showCaption(state);
     } else if (cancelled || (!returnedHome && !destinationZone)) {
       restore(state, current.previousPosition);
     } else if (current.dragging && returnedHome) {
       restore(state, null);
     } else if (current.dragging) {
       const stageRect = stage.getBoundingClientRect();
-      const zoneRect = destinationZone.getBoundingClientRect();
       const stickerRect = state.button.getBoundingClientRect();
-      const overflowX = stickerRect.width * .2;
-      const overflowY = stickerRect.height * .2;
-      const minLeft = zoneRect.left - stageRect.left - overflowX;
-      const minTop = zoneRect.top - stageRect.top - overflowY;
-      const maxLeft = Math.max(minLeft, zoneRect.right - stageRect.left - stickerRect.width + overflowX);
-      const maxTop = Math.max(minTop, zoneRect.bottom - stageRect.top - stickerRect.height + overflowY);
-      const left = clamp(stickerRect.left - stageRect.left, minLeft, maxLeft);
-      const top = clamp(stickerRect.top - stageRect.top, minTop, maxTop);
+      const left = stickerRect.left - stageRect.left;
+      const top = stickerRect.top - stageRect.top;
       setPosition(state, left, top);
       if (state.button.parentElement !== stage) stage.append(state.button);
       state.placed = true;
@@ -537,7 +528,7 @@
     if (image.complete) resize();
     new ResizeObserver(resize).observe(button);
     button.addEventListener('dragstart', (event) => event.preventDefault());
-    button.addEventListener('focus',()=>showCaption(state));
+    button.addEventListener('focus',()=>{if(button.matches(':focus-visible')&&!button.disabled)showCaption(state);});
     button.addEventListener('blur',hideCaption);
 
     button.addEventListener('pointerdown', (event) => {
@@ -546,7 +537,7 @@
       const x = (event.clientX - rect.left) / rect.width;
       const y = (event.clientY - rect.top) / rect.height;
       try { if (!isStickerPixel(state, x, y)) return; } catch { /* Local-file canvas fallback. */ }
-      showCaption(state);
+      hideCaption();
       event.preventDefault();
       clearTimeout(state.returnTimer);
       state.button.classList.remove('is-returning');
@@ -633,31 +624,130 @@
     let row = {sticker_id:state.id,removed:!state.placed};
     if(state.placed){
       const zone=state.dropZone.getBoundingClientRect(), r=state.button.getBoundingClientRect();
-      row={sticker_id:state.id,zone:dropZones.indexOf(state.dropZone),x:clamp((r.left+r.width/2-zone.left)/zone.width,0,1),y:clamp((r.top+r.height/2-zone.top)/zone.height,0,1)};
+      row={sticker_id:state.id,zone:0,x:clamp((r.left+r.width/2-zone.left)/zone.width,-.5,1.5),y:clamp((r.top+r.height/2-zone.top)/zone.height,-.5,1.5)};
     }
+    row.copy_owner = state.button.dataset.copyOwner || 'preview';
+    row.copy_no = Number(state.button.dataset.copyNo || 1);
     state.normalized = state.placed ? row : null;
+    if (state.placed) {
+      // Return the private catalogue copy immediately; the table renders its own.
+      state.placed = false; state.position = null; state.normalized = null; state.dropZone = null;
+      clearTimeout(state.returnTimer); state.home.append(state.button);
+      for (const key of ['position','left','top','width','height']) state.button.style[key] = '';
+      flatten(state); updateDropTarget(); applyPlacement(row);
+    }
     document.dispatchEvent(new CustomEvent('stck:placement',{detail:row}));
   }
-  function applyPlacement(row){
-    const state=states.find(s=>s.id===row.sticker_id);if(!state)return;
-    if(row.removed){restore(state,null);return;}
-    const zone=dropZones[row.zone];if(!zone||!Number.isFinite(row.x)||!Number.isFinite(row.y))return;
-    const zr=zone.getBoundingClientRect(), sr=stage.getBoundingClientRect();
-    clearTimeout(state.returnTimer);state.button.classList.remove('is-returning');
-    const size=getComputedStyle(document.documentElement).getPropertyValue(state.rare?'--stck-rare-size':'--stck-sticker-size').trim();
-    state.button.style.width=size;state.button.style.height=size;
-    stage.append(state.button);state.placed=true;state.dropZone=zone;state.normalized=row;
-    const left=zr.left-sr.left+clamp(row.x,0,1)*zr.width-state.button.offsetWidth/2;
-    const top=zr.top-sr.top+clamp(row.y,0,1)*zr.height-state.button.offsetHeight/2;
-    state.position={left,top};setPosition(state,left,top);flatten(state);updateDropTarget();
+  // Shared placements have their own DOM nodes. They never move a partner's
+  // sticker into this account's private collection or reveal its ownership.
+  const board = new Map();
+  const placementKey = row => [row.copy_owner || 'preview',row.sticker_id,row.copy_no || 1].join(':');
+  let boardGesture = null;
+  function placeBoard(entry) {
+    const zone = dropZones[entry.row.zone]; if (!zone) return;
+    const zr = zone.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    entry.button.style.left = (zr.left - sr.left + entry.row.x * zr.width - entry.button.offsetWidth / 2) + 'px';
+    entry.button.style.top = (zr.top - sr.top + entry.row.y * zr.height - entry.button.offsetHeight / 2) + 'px';
   }
-  document.addEventListener('stck:restore',e=>{
-    if(gesture)return;restoring=true;
-    const incoming=new Set(e.detail.map(row=>row.sticker_id));
-    states.forEach(s=>{if(s.placed&&!incoming.has(s.id))restore(s,null);});
-    e.detail.forEach(applyPlacement);restoring=false;
+  function applyPlacement(row) {
+    let entry = board.get(placementKey(row));
+    if (row.removed) { entry?.button.remove(); board.delete(placementKey(row)); return; }
+    if (!dropZones[row.zone] || !Number.isFinite(row.x) || !Number.isFinite(row.y)) return;
+    if (!entry) {
+      const source = states.find(s => s.id === row.sticker_id); if (!source) return;
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'shared-sticker';
+      button.setAttribute('aria-label', source.button.getAttribute('aria-label'));
+      const image = source.image.cloneNode(); image.removeAttribute('data-label-path');
+      const author = document.createElement('span'); author.className = 'sticker-author'; author.setAttribute('aria-hidden','true');
+      button.append(image, author); stage.append(button);
+      entry = { button, row }; board.set(placementKey(row), entry);
+      button.onpointerdown = e => {
+        if (e.button !== 0 || boardGesture || gesture) return;
+        e.preventDefault(); hideCaption();
+        const rect = button.getBoundingClientRect();
+        boardGesture = { entry, id: e.pointerId, x: e.clientX, y: e.clientY, offsetX: e.clientX-rect.left, offsetY:e.clientY-rect.top, moved: false };
+        button.dataset.lifted = 'true';
+        button.setPointerCapture(e.pointerId);
+      };
+      button.onpointermove = e => {
+        const g = boardGesture; if (!g || g.entry !== entry || e.pointerId !== g.id) return;
+        if (Math.hypot(e.clientX - g.x, e.clientY - g.y) < 8) return;
+        g.moved = true; const sr = stage.getBoundingClientRect();
+        button.style.left = (e.clientX - sr.left - g.offsetX) + 'px';
+        button.style.top = (e.clientY - sr.top - g.offsetY) + 'px';
+      };
+      function end(e, cancel = false) {
+        const g = boardGesture; if (!g || g.entry !== entry || g.id !== e.pointerId) return;
+        boardGesture = null;
+        button.dataset.lifted = 'false';
+        if (button.hasPointerCapture(e.pointerId)) button.releasePointerCapture(e.pointerId);
+        if (g.moved && !cancel) {
+          const zone = findDropZone(entry);
+          const home = document.querySelector('.sheet-stack').getBoundingClientRect();
+          if (!zone && entry.row.ownCopy && e.clientX >= home.left && e.clientX <= home.right && e.clientY >= home.top && e.clientY <= home.bottom) {
+            document.dispatchEvent(new CustomEvent('stck:placement', { detail: {...entry.row,removed:true} }));
+            return;
+          }
+          if (zone) {
+            const r = zone.getBoundingClientRect(), br = button.getBoundingClientRect(); entry.row = { ...entry.row, zone: 0, x: clamp((br.left+br.width/2-r.left)/r.width,-.5,1.5), y: clamp((br.top+br.height/2-r.top)/r.height,-.5,1.5) };
+            document.dispatchEvent(new CustomEvent('stck:placement', { detail: entry.row }));
+          }
+        } else if (!cancel) showCaption(entry);
+        placeBoard(entry);
+      }
+      button.onpointerup = e => end(e); button.onpointercancel = e => end(e,true); button.onlostpointercapture = e => end(e,true);
+      button.onclick = e => { if (e.detail === 0) showCaption(entry); };
+      button.onkeydown = e => {
+        if (entry.row.ownCopy && (e.key === 'Delete' || e.key === 'Backspace')) {
+          e.preventDefault();
+          document.dispatchEvent(new CustomEvent('stck:placement', {detail:{...entry.row,removed:true}}));
+        }
+      };
+    }
+    entry.row = { ...row };
+    const author = entry.button.querySelector('.sticker-author');
+    author.textContent = row.authorMark || '';
+    author.hidden = !row.authorMark;
+    entry.button.dataset.author = row.authorMark || '';
+    const label = states.find(s => s.id === row.sticker_id).button.getAttribute('aria-label').replace(/, décoller et déplacer$/,'');
+    entry.button.setAttribute('aria-label', label + (row.authorLabel ? ' · ' + row.authorLabel : ''));
+    placeBoard(entry);
+  }
+  document.addEventListener('stck:restore', e => {
+    if (gesture || boardGesture) return;
+    const incoming = new Set(e.detail.map(placementKey));
+    for (const [id, entry] of board) if (!incoming.has(id)) { entry.button.remove(); board.delete(id); }
+    e.detail.forEach(applyPlacement);
   });
-  document.addEventListener('stck:restore-one',e=>{if(!gesture)applyPlacement(e.detail);});
+  document.addEventListener('stck:restore-one', e => { if (!gesture && !boardGesture) applyPlacement(e.detail); });
+  document.addEventListener('stck:discoveries', e => {
+    const owned = new Set(e.detail);
+    states.forEach(state => {
+      const yes = owned.has(state.id); state.button.disabled = !yes;
+      state.button.dataset.discovered = String(yes); state.home.classList.toggle('is-unowned', !yes);
+    });
+  });
+  document.addEventListener('stck:stock', e => {
+    const stock = new Map(e.detail.map(item => [item.sticker_id,item]));
+    states.forEach(state => {
+      const item = stock.get(state.id), available = item?.available || [];
+      state.button.dataset.copyOwner = item?.copy_owner || 'preview';
+      state.button.dataset.copyNo = String(available[0] || 1);
+      state.button.disabled = available.length === 0;
+      state.home.classList.toggle('is-unowned', available.length === 0);
+      let badge = state.home.querySelector('.stock-count');
+      if (!badge) { badge=document.createElement('span'); badge.className='stock-count'; badge.setAttribute('aria-hidden','true'); state.home.append(badge); }
+      badge.textContent = available.length > 1 ? '×'+available.length : '';
+      badge.hidden = available.length < 2;
+      state.button.title = item?.count ? `${available.length} disponible(s) sur ${item.count}` : '';
+    });
+  });
+  document.addEventListener('stck:identity', () => {
+    cancelGesture(); boardGesture = null; hideCaption();
+    for (const entry of board.values()) entry.button.remove(); board.clear();
+    states.forEach(state => { state.button.disabled = true; state.home.classList.add('is-unowned'); });
+  });
+  new ResizeObserver(() => board.forEach(placeBoard)).observe(stage);
 
   const stageObserver = new ResizeObserver(() => {
     states.forEach((state) => {

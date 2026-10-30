@@ -1,0 +1,93 @@
+/* Shared phone support for the collection and pouch. */
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-bottom: 24px;
+}
+body {
+  margin: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+[hidden] {
+  display: none !important;
+}
+.sticker-nameplate {
+  position: fixed;
+  box-sizing: border-box;
+  z-index: 90;
+  max-width: calc(100vw - 24px);
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #faf6ebf5;
+  color: #3d4a40;
+  font:
+    italic 18px/1.35 Georgia,
+    serif;
+  box-shadow: 0 5px 18px #30382d20;
+  pointer-events: none;
+}
+.account-dialog {
+  box-sizing: border-box;
+  max-height: calc(
+    100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dialog-close,
+.account-dialog button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.save-status {
+  transition: opacity 0.2s;
+}
+.save-status[data-idle="true"] {
+  opacity: 0;
+}
+.paper-theatre,
+.cardboard-stage {
+  opacity: 0.22;
+  z-index: 0;
+}
+.topbar {
+  padding-top: calc(12px + env(safe-area-inset-top));
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.topbar .back-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+body[data-collection-ready="false"] .peel-sticker {
+  visibility: hidden;
+}
+.shared-sticker {
+  position: absolute;
+  z-index: 12;
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border: 0;
+  background: none;
+  touch-action: none;
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+.shared-sticker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(1px 2px 1px #3333);
+  pointer-events: none;
+}
+.shared-sticker:active {
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .save-status {
+    transition: none;
+  }
+}

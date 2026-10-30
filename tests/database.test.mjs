@@ -24,6 +24,12 @@ before(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    await fs.readFile(
+      "supabase/migrations/20261030150446_stck_free_board.sql",
+      "utf8",
+    ),
+  );
 });
 after(async () => db?.close());
 test("spaces, invitations and cross-account isolation", async () => {
@@ -34,7 +40,11 @@ test("spaces, invitations and cross-account isolation", async () => {
   );
   assert.equal((await as(C, "select * from public.spaces")).rows.length, 0);
   await assert.rejects(
-    as(C, "insert into public.placements values($1,'1-01',0,0.5,0.5)", [space]),
+    as(
+      C,
+      "insert into public.placements(space_id,sticker_id,zone,x,y) values($1,'1-01',0,0.5,0.5)",
+      [space],
+    ),
     /row-level security/,
   );
   const token = (await as(A, "select public.invite_partner() as token")).rows[0]
@@ -51,9 +61,11 @@ test("spaces, invitations and cross-account isolation", async () => {
     as(C, "select public.join_space($1)", [token]),
     /invalide/,
   );
-  await as(B, "insert into public.placements values($1,'1-01',0,0.3,0.7)", [
-    space,
-  ]);
+  await as(
+    B,
+    "insert into public.placements(space_id,sticker_id,zone,x,y) values($1,'1-01',0,0.3,0.7)",
+    [space],
+  );
   assert.equal((await as(A, "select * from public.placements")).rows.length, 1);
   assert.equal((await as(C, "select * from public.placements")).rows.length, 0);
   await assert.rejects(
@@ -205,5 +217,38 @@ test("reminders survive midnight and daylight saving changes without moving the 
   assert.equal(
     await key("2026-10-25T18:00:00Z", "18:30", "Europe/Paris"),
     null,
+  );
+});
+
+test("free board accepts overflow and keeps the original author", async () => {
+  await as(
+    A,
+    "insert into public.placements(space_id,sticker_id,zone,x,y,placed_by) values($1,'2-01',0,-0.1,1.1,$2)",
+    [space, B],
+  );
+  let row = (
+    await as(B, "select * from public.placements where sticker_id='2-01'")
+  ).rows[0];
+  assert.equal(row.placed_by, A);
+  await as(
+    B,
+    "update public.placements set x=0.8,placed_by=$1 where sticker_id='2-01'",
+    [B],
+  );
+  row = (await as(A, "select * from public.placements where sticker_id='2-01'"))
+    .rows[0];
+  assert.equal(row.placed_by, A);
+  assert.ok(Math.abs(row.x - 0.8) < 0.00001);
+  await assert.rejects(
+    as(B, "update public.placements set x=10 where sticker_id='2-01'"),
+    /check constraint/,
+  );
+  await assert.rejects(
+    as(
+      C,
+      "insert into public.placements(space_id,sticker_id,zone,x,y) values($1,'2-02',0,0,0)",
+      [space],
+    ),
+    /row-level security/,
   );
 });
