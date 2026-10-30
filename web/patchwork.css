@@ -293,9 +293,26 @@ body::after {
   font-weight: 750;
 }
 .daily-pouch-link {
-  background: #3f654c;
-  box-shadow: inset 0 1px #ffffff55, 0 2px 5px #263f3228;
+  background: linear-gradient(135deg, #f6a128, #e87924 62%, #dc6526);
+  color: #382c1c;
+  box-shadow: inset 0 1px #fff9c9aa, 0 3px 9px #a94a2040;
   font-weight: 750;
+  animation: daily-pouch-nudge 2.2s ease-in-out infinite;
+}
+.daily-pouch-link[data-available="false"] {
+  background: #e2ddca;
+  color: #68705e;
+  box-shadow: inset 0 1px #ffffff88;
+  animation: none;
+  cursor: default;
+  pointer-events: none;
+}
+@keyframes daily-pouch-nudge {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.025); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-pouch-link { animation: none; }
 }
 .season-heading {
   width: max-content;

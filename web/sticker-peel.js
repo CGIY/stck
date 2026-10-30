@@ -808,6 +808,7 @@
     states.forEach(state => {
       const yes = owned.has(state.id); state.button.disabled = !yes;
       state.button.dataset.discovered = String(yes); state.home.classList.toggle('is-unowned', !yes);
+      state.home.dataset.collected = String(yes);
     });
   });
   document.addEventListener('stck:stock', e => {
@@ -818,6 +819,7 @@
       state.button.dataset.copyNo = String(available[0] || 1);
       state.button.disabled = available.length === 0;
       state.home.classList.toggle('is-unowned', available.length === 0);
+      state.home.dataset.collected = String((item?.count || 0) > 0);
       let badge = state.home.querySelector('.stock-count');
       if (!badge) { badge=document.createElement('span'); badge.className='stock-count'; badge.setAttribute('aria-hidden','true'); state.home.append(badge); }
       badge.textContent = available.length > 1 ? '×'+available.length : '';
@@ -828,7 +830,7 @@
   document.addEventListener('stck:identity', () => {
     cancelGesture(); boardGesture = null; hideCaption();
     for (const entry of board.values()) entry.button.remove(); board.clear();
-    states.forEach(state => { state.button.disabled = true; state.home.classList.add('is-unowned'); });
+    states.forEach(state => { state.button.disabled = true; state.home.classList.add('is-unowned'); state.home.dataset.collected = 'false'; });
   });
   new ResizeObserver(() => board.forEach(placeBoard)).observe(stage);
 

@@ -41,6 +41,25 @@ function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
   if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
 }
+function syncDailyPouchLink() {
+  const link = document.querySelector(".daily-pouch-link");
+  if (!link) return;
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone: zone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const claimed = user && localStorage.getItem(`stck:daily-claimed:${user.id}`) === day;
+  link.dataset.available = String(!claimed);
+  link.textContent = claimed ? "Sticker du jour récupéré" : "Réclamer le sticker du jour";
+  link.setAttribute("aria-disabled", String(Boolean(claimed)));
+  if (claimed) link.addEventListener("click", (event) => event.preventDefault(), { once: true });
+}
+document.querySelector(".daily-pouch-link")?.addEventListener("click", (event) => {
+  if (event.currentTarget.dataset.available === "false") event.preventDefault();
+});
 const button = document.createElement("button");
 button.className = "account-button";
 button.type = "button";
@@ -337,6 +356,11 @@ const bridge = {
     if (daily) {
       lastDraw = await checked(client.rpc("claim_daily_pouch"));
       if (!lastDraw?.claimed) throw Error("Sticker du jour déjà récupéré. Reviens demain.");
+      localStorage.setItem(`stck:daily-claimed:${uid}`, new Intl.DateTimeFormat("en-CA", {
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).format(new Date()));
+      syncDailyPouchLink();
     } else {
       const key = "stck:pending-draw:" + uid;
       let request = sessionStorage.getItem(key);
@@ -841,6 +865,7 @@ async function init() {
   const { data, error } = await client.auth.getSession();
   if (error) throw error;
   user = data.session?.user || null;
+  syncDailyPouchLink();
   client.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_OUT") {
       user = null;

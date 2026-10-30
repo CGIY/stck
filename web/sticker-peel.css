@@ -276,6 +276,11 @@ body::after {
 .rare-slot.is-unowned::after { opacity: .42; }
 .sticker-slot.is-unowned .peel-sticker,
 .rare-slot.is-unowned .peel-sticker { visibility: hidden; pointer-events: none; }
+.rare-slot.is-unowned[data-collected="false"]::before {
+  filter: sepia(1) saturate(5) hue-rotate(2deg) brightness(1.08)
+    drop-shadow(0 0 3px #dda83d88);
+  opacity: 1;
+}
 
 
 .peel-sticker {
