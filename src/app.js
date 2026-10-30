@@ -50,12 +50,13 @@ dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button>
 <p class="account-state"></p><p class="account-feedback" role="status"></p><section data-view="login"><p>Un code, et vos stickers se retrouvent.</p>
 <form id="login-form"><label>Ton code personnel<input name="code" type="password" autocomplete="current-password" autocapitalize="characters" spellcheck="false" placeholder="STCK-A-…" required></label><button>Entrer</button></form>
 <p class="login-note">À garder pour te connecter sur un autre appareil.</p>
-<button id="demo" class="secondary">Explorer l’aperçu</button></section>
+<button id="demo" class="secondary">Explorer l’aperçu</button>
+<button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>
 <section data-view="setup" hidden><p>Votre espace est en cours de préparation. Recharge la page dans un instant.</p></section>
 <section data-view="account" hidden><p id="space-description"></p>
 <h2>Notifications</h2><p id="push-info"></p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
 <form id="preferences-form"><label class="check"><input name="daily" type="checkbox">Rappel quotidien</label><label>À quelle heure ?<input name="time" type="time" value="18:30" required></label><label class="check"><input name="news" type="checkbox">Les nouveautés STCK</label><p id="timezone-label"></p><button>Enregistrer mes préférences</button></form>
-<h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button></section>`;
+<h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button><button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>`;
 document.body.append(dialog);
 const $ = (selector) => dialog.querySelector(selector);
 function view(name) {
@@ -90,6 +91,70 @@ function handleError(error) {
       : "Hors connexion. Réessaie quand le réseau revient.",
   );
 }
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let orientationEnabled = false,
+  orientationFrame = 0,
+  tiltX = 0,
+  tiltY = 0;
+function setTilt(x, y) {
+  tiltX = Math.max(-1, Math.min(1, x));
+  tiltY = Math.max(-1, Math.min(1, y));
+  if (orientationFrame) return;
+  orientationFrame = requestAnimationFrame(() => {
+    orientationFrame = 0;
+    document.documentElement.style.setProperty("--tilt-x", `${tiltX * 7}px`);
+    document.documentElement.style.setProperty("--tilt-y", `${tiltY * 5}px`);
+  });
+}
+function onOrientation(event) {
+  if (reduceMotion.matches || !Number.isFinite(event.gamma)) return;
+  const angle = screen.orientation?.angle || 0;
+  const horizontal =
+    angle === 90 ? event.beta : angle === 270 ? -event.beta : event.gamma;
+  const vertical =
+    angle === 90 ? -event.gamma : angle === 270 ? event.gamma : event.beta;
+  setTilt(horizontal / 35, vertical / 45);
+}
+function motionLabel() {
+  dialog.querySelectorAll(".motion-toggle").forEach((control) => {
+    control.textContent = orientationEnabled
+      ? "Désactiver le mouvement du téléphone"
+      : "Activer le mouvement du téléphone";
+    control.setAttribute("aria-pressed", String(orientationEnabled));
+    control.disabled = reduceMotion.matches;
+  });
+}
+dialog.querySelectorAll(".motion-toggle").forEach((control) =>
+  control.addEventListener("click", async () => {
+    if (orientationEnabled) {
+      window.removeEventListener("deviceorientation", onOrientation);
+      orientationEnabled = false;
+      setTilt(0, 0);
+      localStorage.removeItem("stck:phone-motion");
+      motionLabel();
+      return say("Mouvement du téléphone désactivé.");
+    }
+    try {
+      if (typeof DeviceOrientationEvent === "undefined")
+        throw Error("Capteur indisponible");
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission !== "granted") throw Error("Permission refusée");
+      }
+      window.addEventListener("deviceorientation", onOrientation, {
+        passive: true,
+      });
+      orientationEnabled = true;
+      localStorage.setItem("stck:phone-motion", "true");
+      motionLabel();
+      say("Incline doucement ton téléphone pour voir la scène bouger.");
+    } catch {
+      say("Le capteur n’est pas disponible. L’animation douce reste active.");
+    }
+  }),
+);
+reduceMotion.addEventListener?.("change", motionLabel);
+motionLabel();
 async function checked(query) {
   const { data, error } = await query;
   if (error) throw error;
@@ -459,17 +524,15 @@ async function flush() {
         );
       else
         await checked(
-          client
-            .from("placements")
-            .upsert({
-              space_id: sid,
-              sticker_id: row.sticker_id,
-              copy_owner: uid,
-              copy_no: row.copy_no,
-              zone: 0,
-              x: row.x,
-              y: row.y,
-            }),
+          client.from("placements").upsert({
+            space_id: sid,
+            sticker_id: row.sticker_id,
+            copy_owner: uid,
+            copy_no: row.copy_no,
+            zone: 0,
+            x: row.x,
+            y: row.y,
+          }),
         );
       if (user?.id !== uid || space?.id !== sid || version !== identityVersion)
         return;
@@ -693,10 +756,10 @@ async function init() {
         0,
         ...[...pending.values()].map((row) => row.version || 0),
       );
-      const merged = new Map(boardRows.map(row => [placementKey(row),row]));
+      const merged = new Map(boardRows.map((row) => [placementKey(row), row]));
       for (const row of pending.values()) {
         if (row.removed) merged.delete(placementKey(row));
-        else merged.set(placementKey(row),row);
+        else merged.set(placementKey(row), row);
       }
       restoreBoard([...merged.values()]);
     } catch {

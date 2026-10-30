@@ -1,8 +1,32 @@
 /* Printed cartoon scenery, with working surfaces laid over it as paper pieces. */
-.stock-count { position: absolute; right: 2px; bottom: 1px; padding: 2px 5px; border-radius: 7px; background: #faf5e3; color: #4b5b42; border: 1px solid #cbd2b9; font: 600 10px/1.2 system-ui; pointer-events: none; }
-.prize.is-excess { animation: excess-vanish .8s 1.4s ease-in forwards; }
-@keyframes excess-vanish { to { opacity: 0; transform: translateY(-24px) scale(.7) rotate(8deg); filter: blur(5px); } }
-@media (prefers-reduced-motion: reduce) { .prize.is-excess { animation: none; opacity: .2; } }
+.stock-count {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  padding: 2px 5px;
+  border-radius: 7px;
+  background: #faf5e3;
+  color: #4b5b42;
+  border: 1px solid #cbd2b9;
+  font: 600 10px/1.2 system-ui;
+  pointer-events: none;
+}
+.prize.is-excess {
+  animation: excess-vanish 0.8s 1.4s ease-in forwards;
+}
+@keyframes excess-vanish {
+  to {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.7) rotate(8deg);
+    filter: blur(5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prize.is-excess {
+    animation: none;
+    opacity: 0.2;
+  }
+}
 :root {
   --paper: #b5c6ae;
 }
@@ -15,7 +39,11 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: url("assets/forest-cartoon-v2.webp") center / cover no-repeat;
+  background: url("assets/forest-cartoon-v2.webp")
+    calc(50% + var(--tilt-x, 0px)) calc(50% + var(--tilt-y, 0px)) / 106% 106%
+    no-repeat;
+  transition: background-position 700ms ease-out;
+  animation: forest-drift 32s ease-in-out infinite alternate;
 }
 body {
   isolation: isolate;
@@ -71,6 +99,37 @@ body::after {
   box-shadow:
     2px 4px 0 #3a4e3e38,
     0 8px 14px #263f3218;
+  transform: translate(
+    calc(var(--tilt-x, 0px) * 0.12),
+    calc(var(--tilt-y, 0px) * 0.12)
+  );
+  transition:
+    transform 800ms ease-out,
+    background-color 0.22s;
+}
+.sheet-stack {
+  transform: translate(
+    calc(var(--tilt-x, 0px) * -0.16),
+    calc(var(--tilt-y, 0px) * -0.16)
+  );
+  transition: transform 800ms ease-out;
+}
+.motion-toggle {
+  margin-top: 14px;
+  width: 100%;
+}
+.motion-help {
+  font-size: 12px;
+  color: #65705d;
+  text-align: center;
+}
+@keyframes forest-drift {
+  from {
+    background-position: 49.7% 49.7%;
+  }
+  to {
+    background-position: 50.3% 50.3%;
+  }
 }
 .drop-target.is-hovered {
   background: #d0dfbc;
@@ -170,9 +229,18 @@ body::after {
   }
 }
 @media (max-width: 370px) {
-  .sheet-navigation { gap: 0; padding: 1px 0; }
+  .sheet-navigation {
+    gap: 0;
+    padding: 1px 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
+  body::before,
+  .drop-target,
+  .sheet-stack {
+    transition: none;
+    animation: none;
+  }
   .pouch-link {
     transition: none;
   }
