@@ -24,6 +24,7 @@ Node.js 24 est utilisé pour les vérifications.
 ```sh
 npm ci
 npm test
+npm run check:edge
 node scripts/build.mjs --preview
 npm run preview
 ```
@@ -52,6 +53,6 @@ Le dossier `dist/` est un site statique compatible avec un hébergement HTTPS. L
 
 ## Vérification et limites
 
-Les tests couvrent l’isolation entre comptes, les invitations, l’idempotence des tirages, les préférences, la file d’envoi et les rappels autour de minuit et du changement d’heure. L’interface et les ressources sont vérifiées localement.
+Les tests couvrent l’isolation entre comptes, les invitations, l’idempotence des tirages, les préférences, la file d’envoi et les rappels autour de minuit et du changement d’heure. La fonction Web Push est également vérifiée par Deno. L’interface, le rechargement du collage et les ressources sont vérifiés localement.
 
 La réception réelle d’une notification sur iPhone, l’authentification par e-mail et l’isolation sur le projet Supabase distant doivent être vérifiées après déploiement. Les notifications sont envoyées avec reprise sur erreur ; un crash après un envoi peut entraîner une répétition, regroupée par le même identifiant de notification. La synchronisation simultanée du même sticker suit la dernière écriture reçue par le serveur. La navigation hors connexion affiche une page de reprise, sans mettre en cache les données de compte.

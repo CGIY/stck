@@ -154,3 +154,5 @@
     font-size: 10px;
   }
 }
+
+:root{--stck-sticker-size:105px;--stck-rare-size:126px}@media(max-width:480px){:root{--stck-sticker-size:90px;--stck-rare-size:110px}}

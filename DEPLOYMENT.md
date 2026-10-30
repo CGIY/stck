@@ -28,7 +28,7 @@ Cette commande écrit `.private/push-config.sql` avec des droits locaux restrein
 
 Exécuter ce fichier dans la base via un canal administrateur autorisé. Il crée uniquement la configuration du projet STCK et refuse de remplacer des clés existantes. Les clés sont stockées dans `stck_private.push_config`, sans accès utilisateur.
 
-Déployer la fonction `push-dispatch` avec ses trois fichiers et la vérification JWT de la passerelle désactivée : **la fonction vérifie elle-même le secret Bearer dédié**. Ne pas utiliser une clé utilisateur ou publique à la place du secret. Appliquer ensuite `supabase/schedule.sql` pour appeler la fonction chaque minute.
+Déployer la fonction `push-dispatch` avec ses fichiers TypeScript, JavaScript, `deno.json` et `deno.lock` et la vérification JWT de la passerelle désactivée : **la fonction vérifie elle-même le secret Bearer dédié**. Ne pas utiliser une clé utilisateur ou publique à la place du secret. Appliquer ensuite `supabase/schedule.sql` pour appeler la fonction chaque minute.
 
 Contrôler l’historique Cron et les réponses `net._http_response`, puis inscrire un appareil depuis l’application. Ne pas insérer de fausse destination de notification. Vérifier un rappel, le désabonnement de l’appareil et la suppression d’un abonnement expiré. Les notifications restent désactivées par défaut.
 

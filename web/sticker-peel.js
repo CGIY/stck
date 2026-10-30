@@ -315,6 +315,7 @@
         homeRect.top - stageRect.top + (homeRect.height - state.button.offsetHeight) / 2);
       state.placed = false;
       state.position = null;
+      state.normalized = null;
       state.dropZone = null;
       clearTimeout(state.returnTimer);
       state.returnTimer = window.setTimeout(() => {
@@ -634,6 +635,7 @@
       const zone=state.dropZone.getBoundingClientRect(), r=state.button.getBoundingClientRect();
       row={sticker_id:state.id,zone:dropZones.indexOf(state.dropZone),x:clamp((r.left+r.width/2-zone.left)/zone.width,0,1),y:clamp((r.top+r.height/2-zone.top)/zone.height,0,1)};
     }
+    state.normalized = state.placed ? row : null;
     document.dispatchEvent(new CustomEvent('stck:placement',{detail:row}));
   }
   function applyPlacement(row){
@@ -641,21 +643,26 @@
     if(row.removed){restore(state,null);return;}
     const zone=dropZones[row.zone];if(!zone||!Number.isFinite(row.x)||!Number.isFinite(row.y))return;
     const zr=zone.getBoundingClientRect(), sr=stage.getBoundingClientRect();
-    stage.append(state.button);state.placed=true;state.dropZone=zone;
+    clearTimeout(state.returnTimer);state.button.classList.remove('is-returning');
+    const size=getComputedStyle(document.documentElement).getPropertyValue(state.rare?'--stck-rare-size':'--stck-sticker-size').trim();
+    state.button.style.width=size;state.button.style.height=size;
+    stage.append(state.button);state.placed=true;state.dropZone=zone;state.normalized=row;
     const left=zr.left-sr.left+clamp(row.x,0,1)*zr.width-state.button.offsetWidth/2;
     const top=zr.top-sr.top+clamp(row.y,0,1)*zr.height-state.button.offsetHeight/2;
     state.position={left,top};setPosition(state,left,top);flatten(state);updateDropTarget();
   }
   document.addEventListener('stck:restore',e=>{
     if(gesture)return;restoring=true;
-    states.forEach(s=>{if(s.placed)restore(s,null);});
+    const incoming=new Set(e.detail.map(row=>row.sticker_id));
+    states.forEach(s=>{if(s.placed&&!incoming.has(s.id))restore(s,null);});
     e.detail.forEach(applyPlacement);restoring=false;
   });
   document.addEventListener('stck:restore-one',e=>{if(!gesture)applyPlacement(e.detail);});
 
   const stageObserver = new ResizeObserver(() => {
     states.forEach((state) => {
-      if (!state.placed || !state.position) return;
+      if (!state.placed || !state.position || gesture?.state===state) return;
+      if(state.normalized){applyPlacement(state.normalized);return;}
       const stageRect = stage.getBoundingClientRect();
       const zoneRect = state.dropZone?.getBoundingClientRect() || dropTarget.getBoundingClientRect();
       const overflowX = state.button.offsetWidth * .2;
