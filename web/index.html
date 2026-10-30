@@ -6,37 +6,12 @@
   <meta name="theme-color" content="#eeeae1">
   <title>STCK · La bibliothèque</title>
   <link rel="stylesheet" href="sticker-peel.css?v=rare-foil-3">
-  <link rel="stylesheet" href="sheet-stack.css?v=game-loop-4">
+  <link rel="stylesheet" href="sheet-stack.css?v=game-loop-6">
   <script src="sheet-stack.js?v=game-loop-2" defer></script>
-  <script src="sticker-peel.js?v=expiry-1" defer></script>
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content="STCK, vos planches de stickers à partager à deux."><link rel="stylesheet" href="account.css"><script src="config.js"></script><script src="app.js?v=economy-4" type="module"></script><link rel="stylesheet" href="iphone.css?v=iphone-4"><link rel="stylesheet" href="patchwork.css?v=forest-4">
+  <script src="sticker-peel.js?v=unpeel-2" defer></script>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content="STCK, vos planches de stickers à partager à deux."><link rel="stylesheet" href="account.css"><script src="config.js"></script><script src="app.js?v=economy-4" type="module"></script><link rel="stylesheet" href="iphone.css?v=iphone-4"><link rel="stylesheet" href="patchwork.css?v=forest-6">
 </head>
 <body data-collection-ready="false">
-  <svg class="forest-parallax" viewBox="0 0 1000 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <defs><filter id="leaf-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="4" flood-color="#1c3329" flood-opacity=".23"/></filter></defs>
-    <g class="forest-canopy forest-canopy-left" filter="url(#leaf-shadow)" stroke="#24382f" stroke-width="9" stroke-linejoin="round">
-      <path d="M-24 0H340Q318 44 287 38Q282 78 245 72Q227 111 192 94Q163 129 135 103Q99 132 76 101Q40 124 26 91Q-8 97-24 67Z" fill="#175f59"/>
-      <path d="M18 4Q24 32 45 34Q50 63 77 60Q85 88 112 78Q134 103 156 82Q183 101 202 73Q227 87 246 57Q274 66 286 35" fill="none" stroke="#47aaa0" stroke-width="12"/>
-      <path d="M3 92Q34 65 62 83Q72 113 45 131Q17 134 3 112ZM115 104Q151 77 178 100Q182 131 155 144Q124 139 115 104ZM221 87Q250 63 276 80Q288 108 260 124Q234 117 221 87Z" fill="#40856a"/>
-    </g>
-    <g class="forest-canopy forest-canopy-right" filter="url(#leaf-shadow)" stroke="#26372b" stroke-width="9" stroke-linejoin="round">
-      <path d="M680 0H1025V81Q1000 112 965 94Q942 128 908 103Q878 133 850 104Q814 130 790 100Q751 119 737 85Q701 99 680 62Z" fill="#55713a"/>
-      <path d="M709 4Q718 34 743 34Q752 65 780 60Q788 89 814 78Q839 103 861 81Q891 102 911 72Q937 89 954 57Q984 67 1000 34" fill="none" stroke="#879b4e" stroke-width="12"/>
-      <path d="M747 103Q773 76 801 96Q809 126 779 145Q753 137 747 103ZM865 104Q891 77 917 98Q923 128 896 143Q870 137 865 104ZM962 91Q987 67 1011 84V128Q985 126 962 91Z" fill="#658247"/>
-    </g>
-    <g class="forest-foreground forest-foreground-left" filter="url(#leaf-shadow)" stroke="#203c36" stroke-width="8" stroke-linejoin="round">
-      <path d="M-18 906Q65 826 143 900Q173 968 104 1025Q29 1034-18 976Z" fill="#226f66"/>
-      <path d="M-10 1036Q56 970 113 1016Q136 1080 69 1120Q9 1104-10 1036Z" fill="#6d873d"/>
-      <path d="M30 1001Q73 954 116 978M27 1058Q63 1024 99 1038" fill="none" stroke="#adc16d" stroke-width="10"/>
-      <path d="M0 1159Q81 1098 161 1141Q186 1190 132 1225H0Z" fill="#1d5c57"/>
-    </g>
-    <g class="forest-foreground forest-foreground-right" filter="url(#leaf-shadow)" stroke="#233a31" stroke-width="8" stroke-linejoin="round">
-      <path d="M1018 895Q935 820 859 898Q833 964 902 1022Q975 1033 1018 976Z" fill="#175f59"/>
-      <path d="M1015 1034Q953 971 897 1015Q873 1077 941 1121Q1002 1103 1015 1034Z" fill="#668341"/>
-      <path d="M981 997Q941 953 898 978M985 1059Q950 1024 914 1038" fill="none" stroke="#a4b85c" stroke-width="10"/>
-      <path d="M1005 1162Q926 1098 846 1142Q821 1192 877 1225H1005Z" fill="#175550"/>
-    </g>
-  </svg>
   <svg class="color-definitions" aria-hidden="true" width="0" height="0" focusable="false">
     <defs>
       <!-- Shared mineral ink treatment. Neutral whites, blacks and alpha stay intact. -->
@@ -66,9 +41,9 @@
 
       <div class="peel-stage" id="peelStage">
         <section class="board-area" aria-label="Votre collage">
-          <a class="pouch-link" href="pochette.html">Pochette bonus · 3 jetons <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 8h16M9 14h6"/></svg></a>
+          <a class="pouch-link" href="pochette.html">Ouvrir une pochette bonus · 3 jetons <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 8h16M9 14h6"/></svg></a>
         <div class="drop-target" id="dropTarget" role="group" aria-label="Collage partagé, placement libre"></div>
-        <div class="token-strip" aria-label="Récompenses"><span id="wallet-balance">0 jeton</span><a class="daily-pouch-link" href="pochette.html?daily=1">Sticker du jour</a></div>
+        <div class="token-strip" aria-label="Récompenses"><span id="wallet-balance">0 jeton</span><a class="daily-pouch-link" href="pochette.html?daily=1" aria-label="Réclamer le sticker gratuit du jour">Réclamer le sticker du jour</a></div>
         </section>
 
         <section class="collection" aria-label="Banque de stickers">
