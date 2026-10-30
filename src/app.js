@@ -41,7 +41,7 @@ function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
   if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
 }
-function syncDailyPouchLink() {
+async function syncDailyPouchLink() {
   const link = document.querySelector(".daily-pouch-link");
   if (!link) return;
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
@@ -51,11 +51,20 @@ function syncDailyPouchLink() {
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
-  const claimed = user && localStorage.getItem(`stck:daily-claimed:${user.id}`) === day;
-  link.dataset.available = String(!claimed);
-  link.textContent = claimed ? "Sticker du jour récupéré" : "Réclamer le sticker du jour";
-  link.setAttribute("aria-disabled", String(Boolean(claimed)));
-  if (claimed) link.addEventListener("click", (event) => event.preventDefault(), { once: true });
+  const uid = user?.id;
+  let available = !uid || localStorage.getItem(`stck:daily-claimed:${uid}`) !== day;
+  if (client && uid) {
+    try {
+      available = Boolean(await checked(client.rpc("daily_pouch_available")));
+    } catch (error) {
+      console.warn("État du sticker quotidien indisponible; cache local utilisé.", error);
+    }
+    if (uid !== user?.id) return;
+  }
+  link.dataset.available = String(available);
+  link.textContent = available ? "Réclamer le sticker du jour" : "Sticker du jour récupéré";
+  link.setAttribute("aria-label", available ? "Réclamer le sticker gratuit du jour" : "Sticker du jour déjà récupéré");
+  link.setAttribute("aria-disabled", String(!available));
 }
 document.querySelector(".daily-pouch-link")?.addEventListener("click", (event) => {
   if (event.currentTarget.dataset.available === "false") event.preventDefault();
@@ -894,6 +903,7 @@ async function init() {
   }
   sessionStorage.removeItem("stck:preview-mode");
   await loadSpace();
+  await syncDailyPouchLink();
   if (space) {
     try {
       pending = new Map(
