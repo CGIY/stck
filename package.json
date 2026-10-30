@@ -1,0 +1,24 @@
+{
+  "name": "stck",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "preview": "node scripts/serve.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.13",
+    "esbuild": "0.28.2",
+    "prettier": "3.9.6",
+    "sharp": "0.35.5",
+    "supabase": "2.122.0"
+  }
+}

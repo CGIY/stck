@@ -1,0 +1,22 @@
+name: Vérifications STCK
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node scripts/build.mjs --preview
+      - run: node scripts/check-assets.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: stck-preview
+          path: dist
+          retention-days: 7

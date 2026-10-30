@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eeeae1">
+  <title>Stck · La pochette vivante</title>
+  <link rel="stylesheet" href="pochette.css?v=6">
+  <link rel="stylesheet" href="stck-pouch.css?v=2">
+  <script src="pochette.js?v=6" defer></script>
+  <script src="stck-pouch.js?v=1" defer></script>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content="STCK, vos grimoires et stickers à partager."><link rel="stylesheet" href="account.css"><script src="config.js"></script><script src="app.js" type="module"></script></head>
+<body>
+<header class="topbar"><a class="logo" href="index.html" aria-label="Retour à Stck">Stck</a><a class="back-link" href="index.html">La collection ↗</a></header>
+<main class="pouch-page">
+  <p class="eyebrow">Une petite créature. Un grand secret.</p>
+  <h1>Il ne veut pas lâcher.</h1>
+  <p class="intro">Approche… et ose le toucher.</p>
+  <section class="opening" id="opening" data-phase="loading" aria-label="Ouverture de la pochette">
+    <div class="scene" id="scene">
+      <div class="ground-shadow" id="groundShadow"></div>
+      <div class="prize" id="prize" hidden aria-hidden="true"></div>
+      <button class="pouch-trigger" id="openPouch" disabled type="button" aria-label="Toucher la pochette, pression 1 sur 4">
+        <svg id="character" viewBox="-100 -90 1480 1440" aria-hidden="true">
+          <defs>
+            <filter id="paper-grain" x="0" y="0" width="100%" height="100%">
+              <feTurbulence baseFrequency=".55" numOctaves="3" seed="9" result="grain"/>
+              <feColorMatrix in="grain" type="saturate" values="0"/>
+              <feComposite in2="SourceGraphic" operator="in"/>
+              <feBlend in2="SourceGraphic" mode="soft-light"/>
+            </filter>
+            <radialGradient id="sclera"><stop stop-color="#fff4db"/><stop offset="1" stop-color="#dfcdaa"/></radialGradient>
+            <linearGradient id="browShade" x1="0" y1="0" x2="0" y2="1">
+              <stop stop-color="#2a3932"/><stop offset="1" stop-color="#172c29"/>
+            </linearGradient>
+            <clipPath id="eyeClip"><path id="eyeClipPath"/></clipPath>
+            <clipPath id="mouthClip"><path id="mouthClipPath"/></clipPath>
+          </defs>
+          <g id="rig" transform="translate(640 660) scale(1.1) translate(-640 -550)">
+            <g id="torso">
+              <image id="bodyPlate" href="assets/pochette-body-v4.webp" width="1280" height="1280"/>
+              <g id="face">
+                <path id="eyeCrease" fill="none" stroke="#203b3b" stroke-width="10" stroke-linecap="round"/>
+                <path id="eyeWhite" fill="url(#sclera)" stroke="#22261f" stroke-width="23" stroke-linejoin="round"/>
+                <g clip-path="url(#eyeClip)">
+                  <g id="gaze">
+                    <ellipse rx="72" ry="106" fill="#9c8b64"/>
+                    <path d="M0-95C-76-94-75 93-3 98C54 97 64 17 47-44L8-9L30-86Q15-96 0-95Z" fill="#242720"/>
+                    <ellipse cx="-25" cy="-49" rx="12" ry="19" fill="#fff1cd" transform="rotate(15)"/>
+                  </g>
+                </g>
+                <path id="brow" fill="url(#browShade)"/>
+                <path id="mouthShape" stroke="#242720" stroke-width="12" stroke-linejoin="round" fill="#242720"/>
+                <g clip-path="url(#mouthClip)">
+                  <ellipse id="tongue" cx="655" cy="739" rx="72" ry="25" fill="#bd8175"/>
+                  <g id="teeth" fill="#f4e8c8" stroke="#242720" stroke-width="6">
+                    <path d="M510 635H780V702Q640 723 510 690Z"/>
+                    <path d="M555 636V704M600 636V710M645 636V714M690 636V709M735 636V704"/>
+                  </g>
+                </g>
+                <path id="cheek" d="M507 647Q484 651 486 671" fill="none" stroke="#242720" stroke-width="8" stroke-linecap="round"/>
+              </g>
+            </g>
+            <g id="stressMarks" fill="none" stroke="#f4d5a0" stroke-width="13" stroke-linecap="round" opacity="0">
+              <path d="M195 350L125 305M1090 340L1165 285M640 55V-10"/>
+            </g>
+          </g>
+        </svg>
+      </button>
+      <canvas id="smokeCanvas" class="smoke-canvas" width="800" height="800" hidden aria-label="Fumée à balayer avec le doigt ou la souris"></canvas>
+    </div>
+    <div class="progress" id="progress" aria-label="0 pressions sur 4"><i></i><i></i><i></i><i></i></div>
+    <p class="instruction" id="instruction" role="status">Il se réveille…</p>
+    <p class="tempo-hint" id="tempoHint" aria-live="polite" hidden>Retouche pour accélérer</p>
+    <div class="smoke-controls" id="smokeControls" hidden>
+      <span id="clearLabel">Balaie la fumée pour découvrir ton sticker.</span>
+      <progress id="clearProgress" max="100" value="0" aria-label="Fumée dissipée"></progress>
+      <button class="text-button" id="clearKeyboard" type="button">Dissiper sans geste</button>
+    </div>
+    <div class="reveal-info" id="revealInfo" hidden>
+      <h2 id="revealedTitle"></h2><p id="revealedRarity"></p>
+      <button class="another-pouch" id="again" type="button">Réveiller une autre pochette</button>
+    </div>
+  </section>
+  <p class="footnote">Aperçu local · aucun sticker ajouté à la collection.</p>
+</main>
+  <script type="application/json" id="sticker-pool">[
+    {"title":"Bisou","src":"assets/sticker-rubber-c1-01-v4.webp","rare":false,"mineral":false},
+    {"title":"Massage de la tête et des épaules","src":"assets/sticker-rubber-c1-02-v4.webp","rare":false,"mineral":false},
+    {"title":"Massage des épaules","src":"assets/sticker-rubber-c1-03-v4.webp","rare":false,"mineral":false},
+    {"title":"Massage de la cuisse","src":"assets/sticker-rubber-c1-04-v4.webp","rare":false,"mineral":false},
+    {"title":"Mot doux","src":"assets/sticker-rubber-c1-05-v4.webp","rare":false,"mineral":false},
+    {"title":"Soin complet du visage","src":"assets/sticker-rubber-c1-06-v4.webp","rare":false,"mineral":false},
+    {"title":"Café à emporter","src":"assets/sticker-rubber-c2-01-v4.webp","rare":false,"mineral":false},
+    {"title":"Fast-food","src":"assets/sticker-rubber-c2-02-v4.webp","rare":false,"mineral":false},
+    {"title":"Gâteau, cookie et crêpe","src":"assets/sticker-rubber-c2-03-v4.webp","rare":false,"mineral":false},
+    {"title":"Chocolat et canapé","src":"assets/sticker-rubber-c2-04-v4.webp","rare":false,"mineral":false},
+    {"title":"Petit-déjeuner","src":"assets/sticker-rubber-c2-05-v4.webp","rare":false,"mineral":false},
+    {"title":"Apéro sur canapé","src":"assets/sticker-rubber-c2-06-v4.webp","rare":false,"mineral":false},
+    {"title":"Billet de 5 euros et cadeau","src":"assets/sticker-rubber-c3-01-v4.webp","rare":false,"mineral":false},
+    {"title":"Billet de 10 euros et cadeau","src":"assets/sticker-rubber-c3-02-v4.webp","rare":false,"mineral":false},
+    {"title":"Cadeau surprise en ville","src":"assets/sticker-rubber-c3-03-v4.webp","rare":false,"mineral":false},
+    {"title":"Achat d’un jeu de société","src":"assets/sticker-rubber-c3-04-v4.webp","rare":false,"mineral":false},
+    {"title":"Vêtement de seconde main","src":"assets/sticker-rubber-c3-05-v4.webp","rare":false,"mineral":false},
+    {"title":"Livre","src":"assets/sticker-rubber-c3-06-v4.webp","rare":false,"mineral":false},
+    {"title":"Aubergine avec un filet de lait","src":"assets/sticker-rubber-c4-01-v4.webp","rare":false,"mineral":false},
+    {"title":"Pêche humide","src":"assets/sticker-rubber-c4-02-v4.webp","rare":false,"mineral":false},
+    {"title":"Culotte et webcam","src":"assets/sticker-rubber-c4-03-v4.webp","rare":false,"mineral":false},
+    {"title":"Plug rose avec diamant","src":"assets/sticker-rubber-c4-04-v4.webp","rare":false,"mineral":false},
+    {"title":"Agathe et les gouttes de lait","src":"assets/sticker-rubber-c4-05-v4.webp","rare":false,"mineral":false},
+    {"title":"Séance photo boudoir","src":"assets/sticker-rubber-c4-06-v4.webp","rare":false,"mineral":false},
+    {"title":"Massage total","src":"assets/sticker-rubber-c1-07-v4.webp","rare":true,"mineral":false},
+    {"title":"Soirée cinéma costumée","src":"assets/sticker-rubber-c1-08-v4.webp","rare":true,"mineral":false},
+    {"title":"Restaurant","src":"assets/sticker-rubber-c2-07-v4.webp","rare":true,"mineral":false},
+    {"title":"Repas complet à la maison","src":"assets/sticker-rubber-c2-08-v4.webp","rare":true,"mineral":false},
+    {"title":"Billet de 50 euros et cadeau doré","src":"assets/sticker-rubber-c3-07-v4.webp","rare":true,"mineral":false},
+    {"title":"Tatouage arc-en-ciel","src":"assets/sticker-rubber-c3-08-v4.webp","rare":true,"mineral":false},
+    {"title":"Pluie dorée","src":"assets/sticker-rubber-c4-07-v4.webp","rare":true,"mineral":false},
+    {"title":"Jouet connecté rose","src":"assets/sticker-rubber-c4-08-v4.webp","rare":true,"mineral":false}
+  ]</script>
+</body>
+</html>

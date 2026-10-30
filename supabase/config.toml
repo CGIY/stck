@@ -1,0 +1,4 @@
+project_id = "stck"
+[functions.push-dispatch]
+# Dedicated bearer secret is verified inside the worker. User JWTs are rejected.
+verify_jwt = false

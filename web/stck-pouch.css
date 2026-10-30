@@ -1,0 +1,8 @@
+body { background:radial-gradient(ellipse at 20% 0,#fff8,transparent 55%),#eeeae1; }
+.topbar { position:relative; display:flex; align-items:center; justify-content:center; width:100%; max-width:900px; height:auto; margin:auto; padding:27px 20px 10px; border:0; }
+.topbar .logo { display:block; width:222px; padding:0; border:0; background:none; box-shadow:none; transform:rotate(-4deg); }
+.topbar .logo svg { display:block; width:100%; height:auto; font-family:-apple-system,BlinkMacSystemFont,'Arial Rounded MT Bold',sans-serif; filter:drop-shadow(0 3px 2px #3d423419); }
+.topbar .back-link { position:absolute; left:25px; top:50%; display:grid; place-items:center; width:42px; height:42px; padding:0; border:0; color:#56634b; background:transparent; font:25px Georgia,serif; }
+.pouch-page { padding-top:0; }
+.instruction:empty { display:none; }
+@media(max-width:600px) { .topbar { padding-top:22px; } .topbar .logo { width:194px; } .topbar .back-link { left:14px; } }
