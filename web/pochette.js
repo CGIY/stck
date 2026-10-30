@@ -52,6 +52,13 @@
     }
     return {...keys[keys.length-1]};
   }
+  function blinkShape(elapsed) {
+    const duration = 238, closeAt = 74, holdUntil = 101;
+    if (elapsed < 0 || elapsed > duration) return 0;
+    if (elapsed < closeAt) return smooth(elapsed / closeAt);
+    if (elapsed < holdUntil) return 1;
+    return 1 - smooth((elapsed - holdUntil) / (duration - holdUntil));
+  }
   function makeSequence() {
     const start = {...pose,t:0};
     if(step===1) return [start,
@@ -91,14 +98,18 @@
   function drawCharacter(p) {
     opening.dataset.expression=p.anger>.9?'angry':p.close>.85?'blink':p.mouth>.6?'surprised':'curious';
     set('torso','transform','translate('+(640+p.x)+' '+(550+p.y)+') rotate('+p.rot+') skewX('+(p.rot*.14)+') scale('+p.sx+' '+p.sy+') translate(-640 -550)');
-    const c=clamp(p.close,0,.995), a=clamp(p.anger);
-    const top=lerp(333,470,c);
-    // One deforming aperture drives BOTH the white and pupil clipping. No sliding lid layer.
-    const ey=(y,angry=0)=>lerp(y+angry*a,470,c);
-    const d='M386 470 C390 '+ey(402,6)+' 527 '+ey(330,5)+' 650 '+ey(333,100)+' C786 '+ey(331,5)+' 878 '+ey(387,10)+' 879 '+ey(465)+' C883 '+ey(551,-12)+' 746 '+ey(602,-22)+' 626 '+ey(601,-22)+' C499 '+ey(600,-12)+' 389 '+ey(561,-8)+' 386 470Z';
+    const c=clamp(p.close), a=clamp(p.anger);
+    // Upper and lower lids meet on the same curved line, instead of collapsing
+    // every control point onto a flat horizontal seam.
+    const ey=(open,closed,angry=0)=>lerp(open+angry*a,closed,c);
+    const lowerCenter=lerp(626,650,c);
+    const lowerOuter=lerp(883,878,c), lowerRight=lerp(746,786,c), lowerLeft=lerp(499,527,c), lowerInner=lerp(389,390,c);
+    const d='M386 470 C390 '+ey(402,458,6)+' 527 '+ey(330,449,5)+' 650 '+ey(333,450,100)+' C786 '+ey(331,449,5)+' 878 '+ey(387,458,10)+' 879 470 C'+lowerOuter+' '+ey(551,458,-12)+' '+lowerRight+' '+ey(602,449,-22)+' '+lowerCenter+' '+ey(601,450,-22)+' C'+lowerLeft+' '+ey(600,449,-12)+' '+lowerInner+' '+ey(561,458,-8)+' 386 470Z';
     set('eyeWhite','d',d);set('eyeClipPath','d',d);
-    set('eyeCrease','opacity',.45-a*.3);
-    set('eyeCrease','d','M415 '+(top+14)+' C480 '+(top-67)+' 699 '+(top-94)+' 850 '+(top-9));
+    set('eyeWhite','stroke-width',lerp(23,14,c));
+    const crease=(open,closed)=>lerp(open,closed,c);
+    set('eyeCrease','opacity',lerp(.45-a*.3,.78,c));
+    set('eyeCrease','d','M415 '+crease(347,455)+' C480 '+crease(266,421)+' 699 '+crease(239,421)+' 850 '+crease(324,455));
     set('gaze','transform','translate('+(640+gaze.x+p.gx)+' '+(465+gaze.y+p.gy)+') scale('+p.pupil+')');
     // A tapered, asymmetric fold follows the orbital arch. Curvature and weight
     // change together, so anger reads as muscle tension rather than a rigid V.
@@ -347,7 +358,7 @@
         pose.y=Math.sin(t*2.1)*7;pose.rot+=Math.sin(t*1.6)*1.5;
         pose.sx+=Math.sin(t*2.1)*.012;pose.sy-=Math.sin(t*2.1)*.01;
         if(clock>nextBlink){blinkStart=clock;nextBlink=clock+3000+Math.random()*2500;}
-        const b=(clock-blinkStart)/190;if(b>=0&&b<1)pose.close=Math.max(pose.close,Math.sin(b*Math.PI));
+        pose.close=Math.max(pose.close,blinkShape(clock-blinkStart));
         if(clock>nextScratch){scratchStart=clock;nextScratch=clock+9500;}
         const s=(clock-scratchStart)/2400;
         if(s>=0&&s<1){
@@ -380,8 +391,11 @@
     if(phase==='clearing'&&clock-dissipateStart>(motion.matches?120:clearDuration))reveal();
     if(!button.hidden){
       const tracking=phase==='ready'&&pointer.active;
-      gaze.x+=((tracking?pointer.x*108:0)-gaze.x)*Math.min(1,dt*.012);
-      gaze.y+=((tracking?pointer.y*55:0)-gaze.y)*Math.min(1,dt*.012);
+      const targetX=tracking?clamp(pointer.x*108,-100,100):0;
+      const targetY=tracking?clamp(pointer.y*34,-30,30):0;
+      const settle=1-Math.exp(-dt/72);
+      gaze.x+=(targetX-gaze.x)*settle;
+      gaze.y+=(targetY-gaze.y)*settle;
       drawCharacter(pose);
     }
     if(!canvas.hidden)drawSmoke();
