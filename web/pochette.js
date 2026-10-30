@@ -103,9 +103,7 @@
     // Upper and lower lids meet on the same curved line, instead of collapsing
     // every control point onto a flat horizontal seam.
     const ey=(open,closed,angry=0)=>lerp(open+angry*a,closed,c);
-    const lowerCenter=lerp(626,650,c);
-    const lowerOuter=lerp(883,878,c), lowerRight=lerp(746,786,c), lowerLeft=lerp(499,527,c), lowerInner=lerp(389,390,c);
-    const d='M386 470 C390 '+ey(402,458,6)+' 527 '+ey(347,449,5)+' 650 '+ey(350,450,100)+' C786 '+ey(347,449,5)+' 878 '+ey(387,458,10)+' 879 470 C'+lowerOuter+' '+ey(542,458,-12)+' '+lowerRight+' '+ey(575,449,-22)+' '+lowerCenter+' '+ey(575,450,-22)+' C'+lowerLeft+' '+ey(574,449,-12)+' '+lowerInner+' '+ey(561,458,-8)+' 386 470Z';
+    const d='M490 470 C490 '+ey(405,458,6)+' 545 '+ey(338,449,5)+' 640 '+ey(320,450,100)+' C735 '+ey(338,449,5)+' 790 '+ey(405,458,10)+' 790 470 C790 '+ey(535,458,-12)+' 735 '+ey(602,449,-22)+' 640 '+ey(620,450,-22)+' C545 '+ey(602,449,-12)+' 490 '+ey(535,458,-8)+' 490 470Z';
     set('eyeWhite','d',d);set('eyeClipPath','d',d);
     set('eyeWhite','stroke-width',lerp(23,14,c));
     const crease=(open,closed)=>lerp(open,closed,c);
