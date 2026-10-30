@@ -90,7 +90,7 @@
       challengeNote.textContent = 'Prenez le temps d’en parler ensemble. La personne qui l’a accepté peut encore changer d’avis.';
     } else if (row.challengeAuthorIsMe) {
       challengeStatus.textContent = 'En attente de l’autre personne.';
-      challengeNote.textContent = 'C’est une proposition : l’autre participant peut la relever quand il en a envie.';
+      challengeNote.textContent = 'Si personne ne la relève sous 48 h, elle s’efface et ton sticker revient dans ta collection. Tu pourras la reproposer.';
     } else {
       challengeStatus.textContent = 'À relever si tu en as envie.';
       challengeNote.textContent = 'Une proposition à vivre ensemble, à ton rythme et avec l’accord de chacun.';

@@ -1,0 +1,2 @@
+create index placements_copy_draw_reference on public.placements(copy_owner,copy_request_id,sticker_id);
+create index challenge_archive_copy_draw_reference on public.challenge_archive(copy_owner,copy_request_id,sticker_id);

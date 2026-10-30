@@ -15,6 +15,7 @@ let identityVersion = 0,
   statusTimer;
 let previewMode = false,
   inventory = new Map(),
+  inventoryCopyNos = new Map(),
   boardRows = [],
   lastDraw = null,
   sharedTokens = 0,
@@ -86,7 +87,7 @@ dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button>
 <button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>
 <section data-view="setup" hidden><p>Votre espace est en cours de préparation. Recharge la page dans un instant.</p></section>
 <section data-view="account" hidden><p id="space-description"></p>
-<h2>Notifications</h2><p id="push-info"></p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
+<h2>Notifications</h2><p id="push-info"></p><p>Le rappel quotidien t’indique qu’un sticker gratuit est prêt. Chaque téléphone s’active séparément.</p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
 <form id="preferences-form"><label class="check"><input name="daily" type="checkbox">Rappel quotidien</label><label>À quelle heure ?<input name="time" type="time" value="18:30" required></label><label class="check"><input name="news" type="checkbox">Les nouveautés STCK</label><p id="timezone-label"></p><button>Enregistrer mes préférences</button></form>
 <h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button><button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>`;
 document.body.append(dialog);
@@ -270,6 +271,9 @@ function setDiscoveries(ids = []) {
   ids.forEach((id) =>
     inventory.set(id, Math.min(3, (inventory.get(id) || 0) + 1)),
   );
+  inventoryCopyNos = new Map(
+    [...inventory].map(([id, count]) => [id, Array.from({ length: count }, (_, i) => i + 1)]),
+  );
   document.dispatchEvent(new CustomEvent("stck:discoveries", { detail: ids }));
   document.body.dataset.collectionReady = "true";
   refreshStock();
@@ -277,7 +281,7 @@ function setDiscoveries(ids = []) {
 function refreshStock() {
   const owner = user?.id || "preview";
   const stock = catalog.map((item) => {
-    const count = inventory.get(item.id) || 0;
+    const copyNos = inventoryCopyNos.get(item.id) || [];
     const used = new Set(
       boardRows
         .filter(
@@ -291,8 +295,8 @@ function refreshStock() {
     return {
       sticker_id: item.id,
       copy_owner: owner,
-      count,
-      available: Array.from({ length: count }, (_, i) => i + 1).filter(
+      count: copyNos.length,
+      available: copyNos.filter(
         (n) => !used.has(n),
       ),
     };
@@ -319,6 +323,7 @@ function clearIdentity() {
   previewMode = false;
   sharedTokens = 0;
   archivedChallenges = [];
+  inventoryCopyNos = new Map();
   renderWallet();
   document.dispatchEvent(new Event("stck:identity"));
   setDiscoveries([]);
@@ -354,13 +359,19 @@ const bridge = {
     }
     const uid = user.id,
       version = identityVersion;
-    const key = "stck:pending-draw:" + uid;
-    let request = sessionStorage.getItem(key);
-    if (!request) {
-      request = crypto.randomUUID();
-      sessionStorage.setItem(key, request);
+    const daily = new URLSearchParams(location.search).get("daily") === "1";
+    if (daily) {
+      lastDraw = await checked(client.rpc("claim_daily_pouch"));
+      if (!lastDraw?.claimed) throw Error("Sticker du jour déjà récupéré. Reviens demain.");
+    } else {
+      const key = "stck:pending-draw:" + uid;
+      let request = sessionStorage.getItem(key);
+      if (!request) {
+        request = crypto.randomUUID();
+        sessionStorage.setItem(key, request);
+      }
+      lastDraw = await checked(client.rpc("draw_pouch", { p_request: request }));
     }
-    lastDraw = await checked(client.rpc("draw_pouch", { p_request: request }));
     sharedTokens = lastDraw.tokens ?? sharedTokens;
     renderWallet();
     const id = lastDraw.sticker_id;
@@ -375,8 +386,8 @@ const bridge = {
       say("Aperçu · aucun tirage dans ta vraie collection.");
       return;
     }
-    if (user) sessionStorage.removeItem("stck:pending-draw:" + user.id);
-    say(
+    if (user && !new URLSearchParams(location.search).has("daily")) sessionStorage.removeItem("stck:pending-draw:" + user.id);
+    say(lastDraw?.free ? "Sticker du jour ajouté à ta collection." :
       lastDraw?.kept
         ? lastDraw.quantity > 1
           ? `${lastDraw.quantity} exemplaires dans ta collection.`
@@ -443,10 +454,12 @@ async function loadSpace() {
   renderWallet();
   view("account");
   bridge.ready = true;
+  const starterPouches = await checked(client.rpc("grant_starter_pouches"));
+  const expired = await checked(client.rpc("expire_challenges"));
   const rows = await checked(
     client
       .from("placements")
-      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,copy_request_id,challenge_status,accepted_by,completed_at,expires_at")
       .eq("space_id", space.id),
   );
   if (uid !== user?.id || version !== identityVersion) return;
@@ -464,17 +477,19 @@ async function loadSpace() {
     )
       reloadBoard().catch(() => {});
   }, 15000);
-  say("Espace synchronisé");
+  say(starterPouches ? "3 pochettes de départ ajoutées à ta collection." : expired ? `${expired} défi(s) expiré(s) : les stickers sont revenus à leur collection.` : "Espace synchronisé");
 }
 async function reloadBoard() {
   if (!space || !user) return;
+  const expired = await checked(client.rpc("expire_challenges"));
+  if (expired) say(`${expired} défi(s) expiré(s) : les stickers sont revenus à leur collection.`);
   const sid = space.id,
     uid = user.id,
     version = identityVersion;
   const rows = await checked(
     client
       .from("placements")
-      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,copy_request_id,challenge_status,accepted_by,completed_at,expires_at")
       .eq("space_id", sid),
   );
   if (
@@ -507,17 +522,24 @@ async function refreshDiscoveries() {
   const draws = await checked(
     client
       .from("pouch_draws")
-      .select("sticker_id")
+      .select("sticker_id,copy_no")
       .eq("user_id", uid)
       .eq("kept", true)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: true })
       .limit(2000),
   );
   if (user?.id !== uid || version !== identityVersion) return;
   const owned = new Set(draws.map((x) => x.sticker_id));
   setDiscoveries(draws.map((x) => x.sticker_id));
+  inventoryCopyNos = new Map();
+  for (const draw of draws) {
+    const slots = inventoryCopyNos.get(draw.sticker_id) || [];
+    if (draw.copy_no) slots.push(draw.copy_no);
+    inventoryCopyNos.set(draw.sticker_id, slots);
+  }
+  refreshStock();
   $("#space-description").textContent =
-    `${owned.size} stickers dans ta collection privée · table partagée`;
+    `${draws.length} stickers dans ta collection privée · table partagée`;
 }
 document.addEventListener("stck:placement", (event) => {
   const row = event.detail;
@@ -555,6 +577,8 @@ document.addEventListener("stck:challenge-action", async (event) => {
   const key = placementKey(snapshot);
   const current = boardRows.find((row) => placementKey(row) === key);
   if (!current) return;
+  if (client && !previewMode && !current.copy_request_id)
+    return say("Le sticker finit de se sauvegarder. Réouvre le défi dans un instant.");
   const currentStatus = current.challenge_status || "open";
   const wantedStatus = action === "accept" ? "accepted" : action === "done" ? "done" : "open";
   if (previewMode || !user || !space) {
@@ -579,11 +603,13 @@ document.addEventListener("stck:challenge-action", async (event) => {
       const result = await checked(client.rpc("complete_challenge", {
         p_space: space.id, p_sticker: current.sticker_id,
         p_copy_owner: current.copy_owner, p_copy_no: current.copy_no,
+        p_copy_request: current.copy_request_id,
       }));
       boardRows = boardRows.filter((row) => placementKey(row) !== key);
       sharedTokens = result.tokens ?? sharedTokens;
       document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: { ...current, removed: true } }));
       await refreshWalletAndArchive();
+      await refreshDiscoveries();
       say("Défi archivé : +1 jeton pour votre duo.");
       return;
     }
@@ -594,7 +620,8 @@ document.addEventListener("stck:challenge-action", async (event) => {
       .eq("copy_no", current.copy_no)
       .eq("challenge_status", currentStatus);
     if (currentStatus === "accepted") query = query.eq("accepted_by", current.accepted_by);
-    const updated = await checked(query.select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at").maybeSingle());
+    query = query.eq("copy_request_id", current.copy_request_id);
+    const updated = await checked(query.select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,copy_request_id,challenge_status,accepted_by,completed_at,expires_at").maybeSingle());
     if (!updated) {
       await reloadBoard();
       throw Error("Ce défi vient d’évoluer sur l’autre téléphone. Regarde son nouveau statut.");
@@ -642,8 +669,8 @@ async function flush() {
             client.from("placements").update({ zone: 0, x: row.x, y: row.y }),
           ),
         );
-      else
-        await checked(
+      else {
+        const saved = await checked(
           client.from("placements").upsert({
             space_id: sid,
             sticker_id: row.sticker_id,
@@ -652,8 +679,12 @@ async function flush() {
             zone: 0,
             x: row.x,
             y: row.y,
-          }),
+          }).select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,copy_request_id,challenge_status,accepted_by,completed_at,expires_at").single(),
         );
+        const decorated = decoratePlacement(saved);
+        boardRows = boardRows.map((item) => placementKey(item) === placementKey(row) ? decorated : item);
+        document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: decorated }));
+      }
       if (user?.id !== uid || space?.id !== sid || version !== identityVersion)
         return;
       if (pending.get(placementKey(row))?.version === row.version)
