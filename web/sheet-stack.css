@@ -37,6 +37,28 @@
   width: min(100%, 520px);
   padding: 8px 24px 36px;
 }
+.season-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 auto -12px;
+  color: #727b6a;
+  font: 650 11px/1 system-ui, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.season-heading strong {
+  color: #485542;
+  font: italic 19px/1 Georgia, serif;
+  letter-spacing: 0;
+}
+.season-heading i {
+  width: 28px;
+  height: 1px;
+  margin-left: 2px;
+  background: #aeb5a5;
+}
 .peel-stage {
   gap: 24px;
 }
@@ -425,10 +447,10 @@ body::after {
   font: 400 27px/1 system-ui;
 }
 .challenge-kicker { margin: 0 0 8px; color: #798370; font: 750 10px/1 system-ui; letter-spacing: .14em; }
-.challenge-dialog h2 { margin: 0 28px 7px 0; color: #3c4738; font: 700 22px/1.15 Georgia, serif; }
-.challenge-author { margin: 0 0 18px; color: #7a7a6c; font-size: 12px; }
-.challenge-status { margin: 0 0 9px; color: #4e654c; font: 750 15px/1.3 system-ui; }
-.challenge-note { margin: 0; color: #68695f; font: 14px/1.5 system-ui; }
+.challenge-dialog h2 { margin: 0 0 7px; color: #3c4738; text-align: center; font: 650 19px/1.2 Georgia, serif; }
+.challenge-author { margin: 0 0 16px; color: #7a7a6c; text-align: center; font-size: 11px; }
+.challenge-status { margin: 0 0 9px; color: #4e654c; text-align: center; font: 700 13px/1.35 system-ui; }
+.challenge-note { margin: 0; color: #68695f; text-align: center; font: 12px/1.5 system-ui; }
 .challenge-actions { display: grid; gap: 9px; margin-top: 20px; }
 .token-strip { display:flex; justify-content:center; align-items:center; gap:12px; min-height:34px; padding:4px 10px 8px; color:#64705d; font:600 11px/1.2 system-ui,sans-serif; }
 .token-strip #wallet-balance { padding:6px 10px; border:1px solid #c9ccbd; border-radius:99px; background:#f8f5edb8; }

@@ -59,10 +59,6 @@
   }
   nav.append(previous, collection.querySelector(".collection-tabs"), next);
   panel.append(nav);
-  const hint = document.createElement("p");
-  hint.className = "sheet-hint";
-  hint.textContent = "Glisse la planche pour en changer.";
-  panel.append(hint);
   const announcement = document.createElement("p");
   announcement.className = "visually-hidden";
   announcement.setAttribute("aria-live", "polite");
@@ -87,7 +83,6 @@
   async function turn(index) {
     if (turning || index === current) return;
     turning = true;
-    hint.classList.add("is-learned");
     panel.classList.add("is-turning");
     const old = sheets[current],
       direction = (index - current + 4) % 4 === 3 ? 1 : -1;

@@ -313,7 +313,7 @@ function startPreview() {
   } catch {}
   setDiscoveries(
     catalog.flatMap((item) =>
-      Array(Math.min(3, counts[item.id] || 1)).fill(item.id),
+      Array(Math.min(3, counts[item.id] || 0)).fill(item.id),
     ),
   );
   restoreBoard(readLocal());
@@ -337,7 +337,7 @@ const bridge = {
   requestDraw: async () => {
     if (!client || previewMode) {
       const values = crypto.getRandomValues(new Uint32Array(2));
-      const rare = values[0] / 4294967296 < 0.01;
+      const rare = values[0] / 4294967296 < 0.1;
       const pool = catalog.filter((item) => item.rare === rare);
       const item = pool[Math.floor((values[1] / 4294967296) * pool.length)];
       const count = inventory.get(item.id) || 0;
@@ -383,7 +383,8 @@ const bridge = {
   },
   drawRevealed: () => {
     if (!client || previewMode) {
-      say("Aperçu · aucun tirage dans ta vraie collection.");
+      setDiscoveries([...inventory].flatMap(([id, count]) => Array(count).fill(id)));
+      say("Aperçu · sticker ajouté à cette collection locale.");
       return;
     }
     if (user && !new URLSearchParams(location.search).has("daily")) sessionStorage.removeItem("stck:pending-draw:" + user.id);
@@ -454,7 +455,6 @@ async function loadSpace() {
   renderWallet();
   view("account");
   bridge.ready = true;
-  const starterPouches = await checked(client.rpc("grant_starter_pouches"));
   const expired = await checked(client.rpc("expire_challenges"));
   const rows = await checked(
     client
@@ -476,8 +476,8 @@ async function loadSpace() {
       !document.querySelector('[data-lifted="true"]')
     )
       reloadBoard().catch(() => {});
-  }, 15000);
-  say(starterPouches ? "3 pochettes de départ ajoutées à ta collection." : expired ? `${expired} défi(s) expiré(s) : les stickers sont revenus à leur collection.` : "Espace synchronisé");
+  }, 30000);
+  say(expired ? `${expired} défi(s) expiré(s) : les stickers sont revenus à leur collection.` : "Espace synchronisé");
 }
 async function reloadBoard() {
   if (!space || !user) return;
@@ -709,7 +709,7 @@ window.addEventListener("beforeunload", (e) => {
 });
 setInterval(() => {
   if (pending.size) flush().catch(() => {});
-}, 15000);
+  }, 30000);
 function pushSupport() {
   if (
     !("serviceWorker" in navigator) ||
