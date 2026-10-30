@@ -95,3 +95,35 @@ body[data-collection-ready="false"] .peel-sticker {
     transition: none;
   }
 }
+
+.shared-sticker .peel-curl {
+  position: absolute;
+  z-index: 3;
+  top: 3%;
+  right: 3%;
+  width: 30%;
+  height: 30%;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  background: linear-gradient(135deg, #fffef4 0%, #e9e1cf 47%, #bdb39b 50%, #fffdf2 58%, #c9c0aa 100%);
+  filter: drop-shadow(-1px 2px 2px #34382d44);
+  opacity: 0;
+  transform: perspective(48px) rotateY(-78deg) scale(.6);
+  transform-origin: top right;
+  transition: opacity .18s ease, transform .28s cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+}
+.shared-sticker.is-unpeeling .peel-curl,
+.shared-sticker[data-lifted="true"] .peel-curl {
+  opacity: .96;
+  transform: perspective(48px) rotateY(-20deg) scale(1);
+}
+.shared-sticker.is-arriving { animation: sticker-arrive .55s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes sticker-arrive {
+  0% { opacity: .45; transform: translateY(9px) rotate(-7deg) scale(.78); }
+  65% { opacity: 1; transform: translateY(-3px) rotate(2deg) scale(1.06); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shared-sticker.is-arriving { animation: none; }
+  .shared-sticker .peel-curl { transition: none; }
+}
