@@ -9,7 +9,7 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const pool = JSON.parse($('sticker-pool').textContent);
   const isDailyPouch = new URLSearchParams(location.search).get('daily') === '1';
-  $('.intro').textContent = isDailyPouch ? 'Ton sticker offert du jour est prêt.' : 'Une pochette bonus, pour 3 jetons communs.';
+  $('.intro').textContent = isDailyPouch ? 'Touche-le quatre fois pour révéler ton sticker gratuit du jour.' : 'Touche-le quatre fois pour ouvrir. Les 3 jetons sont dépensés au premier toucher.';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const smooth = t => t * t * (3 - 2 * t);
@@ -320,7 +320,7 @@
     $('prize').removeAttribute('aria-hidden');
     $('prize').querySelector('img').alt=selected.title;
     $('revealedTitle').textContent=selected.title;
-    $('revealedRarity').textContent = selected.kept === false ? 'Déjà 3 exemplaires · ce doublon disparaît' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 3` : selected.rare ? 'Édition rare · 1 %' : 'Nouveau sticker';
+    $('revealedRarity').textContent = selected.kept === false ? 'Déjà 3 exemplaires · ce doublon disparaît' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 3` : selected.rare ? 'Édition rare · 1 sur 10' : 'Nouveau sticker';
     $('prize').classList.toggle('is-excess', selected.kept === false);
     $('revealInfo').hidden=false;
     if(resetFocus)$('again').focus({preventScroll:true});
