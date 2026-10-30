@@ -325,7 +325,7 @@ body::after {
 .peel-sticker.mineral-ink > img,
 .peel-sticker.mineral-ink > canvas { filter: url(#mineral-ink); }
 .peel-sticker[data-lifted="true"] { z-index: 12; filter: drop-shadow(0 2px 2px #272f2426); transform: none; }
-.peel-sticker[data-dragging="true"] { z-index: 30; cursor: grabbing; filter: drop-shadow(0 9px 5px #272f2445); transform: rotate(var(--lift-rotation, -3deg)) scale(1.035); }
+.peel-sticker[data-dragging="true"] { z-index: 30; cursor: grabbing; filter: drop-shadow(0 13px 8px #272f245c); transform: translate(18px, -24px) rotate(var(--lift-rotation, -3deg)) scale(1.12); }
 .rare-sticker[data-lifted="true"]::before,
 .rare-sticker[data-lifted="true"]::after { opacity: 0 !important; }
 .peel-sticker.is-returning { transition: left .24s ease, top .24s ease; }
@@ -487,7 +487,7 @@ body::after {
   .rare-sticker::before, .rare-sticker::after { animation: none !important; background-position: 45% 50%; }
   .rare-sticker::after { opacity: .48; }
   .sparkle-ring i { animation: none !important; opacity: .7; }
-  .peel-sticker[data-dragging="true"] { transform: none; }
+  .peel-sticker[data-dragging="true"] { transform: translate(18px, -24px); }
 }
 
 @media (max-width: 360px) {

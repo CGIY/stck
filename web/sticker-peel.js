@@ -216,10 +216,10 @@
     // One soft cast shadow, then narrow strips around a curved paper fold.
     context.save();
     context.transform(0, -1, -1, 0, distance, distance);
-    context.globalAlpha = .22;
+    context.globalAlpha = .31;
     context.shadowColor = 'rgba(35,39,30,.6)';
-    context.shadowBlur = size * (.018 + state.depth * .035);
-    context.shadowOffsetY = size * .015;
+    context.shadowBlur = size * (.018 + state.depth * .049);
+    context.shadowOffsetY = size * .021;
     context.drawImage(state.layer, 0, 0, 1, 1);
     context.restore();
 
@@ -254,9 +254,8 @@
       const held = clamp((time - gesture.started) / 420, 0, 1);
       state.goal = Math.max(.045 + held * .22, gesture.pull);
     } else if (gesture?.state === state) {
-      // Release the curl once the sticker leaves the page; keep a small live lip.
-      const release = clamp((time - gesture.detachedAt) / 220, 0, 1);
-      state.goal = .065 + (gesture.detachDepth - .065) * (1 - release) ** 2;
+      // Keep the peel visible during the drag; the finger otherwise hides the fold.
+      state.goal = gesture.detachDepth;
     }
 
     const timeConstant = reducedMotion ? 24 : 58;
@@ -362,7 +361,7 @@
     const stageRect = stage.getBoundingClientRect();
     gestureState.dragging = true;
     gestureState.detachedAt = performance.now();
-    gestureState.detachDepth = Math.max(state.depth, .42);
+    gestureState.detachDepth = Math.min(.76, Math.max(state.depth, .42) * 1.4);
     gestureState.offsetX = gestureState.startX - stickerRect.left;
     gestureState.offsetY = gestureState.startY - stickerRect.top;
     state.button.dataset.dragging = 'true';
@@ -387,7 +386,7 @@
     const travel = Math.hypot(deltaX, deltaY);
     const inwardX = current.corner % 2 ? -deltaX : deltaX;
     const inwardY = current.corner > 1 ? -deltaY : deltaY;
-    current.pull = clamp(Math.max(Math.abs(inwardX + inwardY), travel * .75) / current.width * 1.35, .045, .54);
+    current.pull = clamp(Math.max(Math.abs(inwardX + inwardY), travel * .75) / current.width * 1.35 * 1.4, .045, .76);
 
     const elapsed = performance.now() - current.started;
     if (!current.dragging && travel >= Math.max(18, current.width * .22) && (elapsed >= 100 || travel > current.width * .5)) beginDrag(state, event, current);
