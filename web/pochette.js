@@ -458,6 +458,6 @@
     else if(!raf&&phase!=='revealed'){lastTime=0;raf=requestAnimationFrame(tick);}
   });
   // Decode the cleaned plate before showing an interactive character.
-  const plate=new Image();plate.src='assets/pochette-body-v4.webp';
+  const plate=new Image();plate.src='assets/pochette-body-v5.webp';
   plate.decode().then(reset).catch(()=>{$('instruction').textContent='Le personnage n’a pas chargé. Recharge la page.';});
 })();
