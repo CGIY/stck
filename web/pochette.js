@@ -24,8 +24,8 @@
   // Keep each expressive pose, compress the pauses between them.
   const reactionDurations = [0, 650, 1000, 800, 1350];
   const burstDuration = 850, clearDuration = 550;
-  const messages = [isDailyPouch ? 'Sticker gratuit du jour · touche la pochette' : '4 touches · 3 jetons débités au premier toucher', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
-  const nodes = Object.fromEntries(['torso','eyeWhite','eyeClipPath','eyeCrease','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
+  const messages = [isDailyPouch ? 'Touchez 4 fois pour ouvrir · sticker du jour offert' : 'Touchez 4 fois pour ouvrir · 3 jetons à la première touche', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
+  const nodes = Object.fromEntries(['torso','face','eyeWhite','eyeClipPath','eyeCrease','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
   const set = (id, attr, value) => nodes[id].setAttribute(attr, value);
 
   function state(value) {
@@ -99,13 +99,13 @@
   function drawCharacter(p) {
     opening.dataset.expression=p.anger>.9?'angry':p.close>.85?'blink':p.mouth>.6?'surprised':'curious';
     set('torso','transform','translate('+(640+p.x)+' '+(550+p.y)+') rotate('+p.rot+') skewX('+(p.rot*.14)+') scale('+p.sx+' '+p.sy+') translate(-640 -550)');
+    set('face','transform','translate(640 550) scale('+(1/p.sx)+' '+(1/p.sy)+') skewX('+(-p.rot*.14)+') translate(-640 -550)');
     const c=clamp(p.close), a=clamp(p.anger);
-    // Upper and lower lids meet on the same curved line, instead of collapsing
-    // every control point onto a flat horizontal seam.
-    const ey=(open,closed,angry=0)=>lerp(open+angry*a,closed,c);
-    const d='M490 470 C490 '+ey(405,458,6)+' 545 '+ey(338,449,5)+' 640 '+ey(320,450,100)+' C735 '+ey(338,449,5)+' 790 '+ey(405,458,10)+' 790 470 C790 '+ey(535,458,-12)+' 735 '+ey(602,449,-22)+' 640 '+ey(620,450,-22)+' C545 '+ey(602,449,-12)+' 490 '+ey(535,458,-8)+' 490 470Z';
+    // Keep the eyeball circular through blinks and body squash; expression is
+    // carried by gaze, brow, and mouth instead of flattening the eye.
+    const d='M640 320 C722.843 320 790 387.157 790 470 C790 552.843 722.843 620 640 620 C557.157 620 490 552.843 490 470 C490 387.157 557.157 320 640 320Z';
     set('eyeWhite','d',d);set('eyeClipPath','d',d);
-    set('eyeWhite','stroke-width',lerp(23,14,c));
+    set('eyeWhite','stroke-width',23);
     const crease=(open,closed)=>lerp(open,closed,c);
     set('eyeCrease','opacity',lerp(.45-a*.3,.78,c));
     set('eyeCrease','d','M415 '+crease(347,455)+' C480 '+crease(266,421)+' 699 '+crease(239,421)+' 850 '+crease(324,455));

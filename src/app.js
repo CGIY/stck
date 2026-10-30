@@ -40,10 +40,6 @@ function say(text) {
 function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
   if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
-  const pouchBalance = document.querySelector("#wallet-display");
-  if (pouchBalance) pouchBalance.textContent = previewMode || !client
-    ? "Aperçu : aucun jeton dépensé"
-    : `Solde commun : ${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"} · 3 pour une pochette`;
 }
 const button = document.createElement("button");
 button.className = "account-button";
