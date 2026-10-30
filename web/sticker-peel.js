@@ -731,7 +731,10 @@
       }
       const author = document.createElement('span'); author.className = 'sticker-author'; author.setAttribute('aria-hidden','true');
       const challengeChip = document.createElement('span'); challengeChip.className = 'challenge-chip'; challengeChip.setAttribute('aria-hidden','true');
-      button.append(image, author, challengeChip); stage.append(button);
+      const curl = document.createElement('span'); curl.className = 'peel-curl'; curl.setAttribute('aria-hidden','true');
+      button.append(image, curl, author, challengeChip); button.classList.add('is-arriving');
+      window.setTimeout(() => button.classList.remove('is-arriving'), 620);
+      stage.append(button);
       entry = { button, row }; board.set(placementKey(row), entry);
       button.onpointerdown = e => {
         if (e.button !== 0 || boardGesture || gesture) return;
@@ -761,6 +764,8 @@
             return;
           }
           if (zone) {
+            button.classList.add('is-unpeeling');
+            window.setTimeout(() => button.classList.remove('is-unpeeling'), 1200);
             const r = zone.getBoundingClientRect(), br = button.getBoundingClientRect(); entry.row = { ...entry.row, zone: 0, x: clamp((br.left+br.width/2-r.left)/r.width,-.5,1.5), y: clamp((br.top+br.height/2-r.top)/r.height,-.5,1.5) };
             document.dispatchEvent(new CustomEvent('stck:placement', { detail: entry.row }));
           }
