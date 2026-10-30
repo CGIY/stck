@@ -72,8 +72,8 @@ body::after {
   padding-bottom: 6px;
 }
 .sticker-logo {
-  width: 108px;
-  filter: drop-shadow(1px 3px 0 #344a3b40) drop-shadow(0 5px 5px #243c2f20);
+  width: 132px;
+  filter: drop-shadow(1px 3px 0 #283b2c76) drop-shadow(0 7px 8px #1f382b4a);
 }
 .account-button {
   background: #faf4dd;
@@ -200,6 +200,12 @@ body::after {
   background: #476a53;
 }
 .token-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  min-height: 48px;
   padding: 7px 12px;
   border: 1px solid #fff9e6d9;
   border-radius: 999px;
@@ -218,7 +224,7 @@ body::after {
 .daily-pouch-link { box-shadow: inset 0 1px #ffffff48, 0 2px 5px #263f3228; transition: transform .2s ease, box-shadow .2s ease; }
 .daily-pouch-link:hover { transform: translateY(-2px); box-shadow: inset 0 1px #ffffff65, 0 5px 10px #263f3233; }
 .app-header, .board-area, .collection { position: relative; z-index: 2; }
-.sticker-logo { animation: logo-float 7s ease-in-out infinite; }
+.sticker-logo { animation: logo-float 5.8s ease-in-out infinite; }
 .board-area .pouch-link { transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, filter .22s ease; }
 .board-area .pouch-link:hover, .board-area .pouch-link:focus-visible { transform: translateY(-2px) rotate(-.5deg); box-shadow: 1px 4px 0 #40544350, 0 9px 14px #263f3228, inset 0 1px #fff; filter: saturate(1.08); }
 .board-area .pouch-link:active { transform: translateY(1px) rotate(-.5deg) scale(.99); }

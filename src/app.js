@@ -40,33 +40,11 @@ function say(text) {
 function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
   if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
-  const count = document.querySelector("#archive-count");
-  if (count) count.textContent = String(archivedChallenges.length);
   const pouchBalance = document.querySelector("#wallet-display");
   if (pouchBalance) pouchBalance.textContent = previewMode || !client
     ? "Aperçu : aucun jeton dépensé"
     : `Solde commun : ${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"} · 3 pour une pochette`;
 }
-const archiveDialog = document.createElement("dialog");
-archiveDialog.className = "archive-dialog";
-archiveDialog.innerHTML = '<h2>Défis réalisés</h2><ul></ul><button type="button">Fermer</button>';
-document.body.append(archiveDialog);
-archiveDialog.querySelector("button").onclick = () => archiveDialog.close();
-document.querySelector("#archive-open")?.addEventListener("click", () => {
-  const list = archiveDialog.querySelector("ul");
-  list.replaceChildren();
-  for (const row of archivedChallenges) {
-    const item = document.createElement("li");
-    item.textContent = catalog.find((entry) => entry.id === row.sticker_id)?.title || row.sticker_id;
-    list.append(item);
-  }
-  if (!archivedChallenges.length) {
-    const item = document.createElement("li");
-    item.textContent = "Les défis terminés apparaîtront ici.";
-    list.append(item);
-  }
-  archiveDialog.showModal();
-});
 const button = document.createElement("button");
 button.className = "account-button";
 button.type = "button";
