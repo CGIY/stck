@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  margin: 0 auto -12px;
+  margin: 0 auto 4px;
   color: #727b6a;
   font: 650 11px/1 system-ui, sans-serif;
   letter-spacing: .13em;
