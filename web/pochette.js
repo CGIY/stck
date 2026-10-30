@@ -9,7 +9,6 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const pool = JSON.parse($('sticker-pool').textContent);
   const isDailyPouch = new URLSearchParams(location.search).get('daily') === '1';
-  $('.intro').textContent = isDailyPouch ? 'Touche-le quatre fois pour révéler ton sticker gratuit du jour.' : 'Touche-le quatre fois pour ouvrir. Les 3 jetons sont dépensés au premier toucher.';
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const smooth = t => t * t * (3 - 2 * t);
@@ -25,7 +24,7 @@
   // Keep each expressive pose, compress the pauses between them.
   const reactionDurations = [0, 650, 1000, 800, 1350];
   const burstDuration = 850, clearDuration = 550;
-  const messages = ['Il te regarde. Touche-le pour commencer.', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
+  const messages = [isDailyPouch ? 'Sticker gratuit du jour · touche la pochette' : '4 touches · 3 jetons débités au premier toucher', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
   const nodes = Object.fromEntries(['torso','eyeWhite','eyeClipPath','eyeCrease','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
   const set = (id, attr, value) => nodes[id].setAttribute(attr, value);
 
