@@ -384,7 +384,7 @@ body::after {
 .rare-sticker {
   width: clamp(74px, 20vw, 94px);
   height: clamp(74px, 20vw, 94px);
-  filter: drop-shadow(0 0 4px #f7e7a977) drop-shadow(0 3px 3px #514b3526);
+  filter: drop-shadow(0 0 2px #f7e7a944) drop-shadow(0 3px 3px #514b3526);
 }
 
 .sparkle-ring {
@@ -400,8 +400,8 @@ body::after {
   height: 6px;
   background: #fffdf2;
   clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
-  filter: drop-shadow(0 0 3px #e8dcff) drop-shadow(0 0 6px #e4c6e7);
-  animation: sparkle-twinkle 1.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 2px #e8dcff) drop-shadow(0 0 3px #e4c6e766);
+  animation: sparkle-twinkle 2.8s ease-in-out infinite;
 }
 
 .sparkle-ring i:nth-child(1) { top: 8%; left: 19%; width: 5px; animation-delay: -.4s; }
@@ -428,26 +428,26 @@ body::after {
 }
 .rare-sticker::before {
   z-index: 4;
-  opacity: .78;
+  opacity: .42;
   background:
-    radial-gradient(ellipse at var(--light-x, 32%) var(--light-y, 24%), #fffef3 0%, #fff6d8a6 20%, transparent 57%),
-    repeating-linear-gradient(128deg, #9af4ed 0%, #d4b1ff 14%, #fff0fa 23%, #f5b9d9 32%, #ffeb9e 44%, #a1f4df 56%, #b1d6ff 70%, #e4baff 84%, #9af4ed 100%);
-  background-size: 100% 100%, 260% 260%;
-  mix-blend-mode: color-dodge;
-  animation: foil-iridescence 3.8s ease-in-out infinite alternate;
+    radial-gradient(ellipse at var(--light-x, 32%) var(--light-y, 24%), #fffef366 0%, #fff6d866 20%, transparent 57%),
+    repeating-linear-gradient(128deg, #9af4ed66 0%, #d4b1ff77 14%, #fff0fa66 23%, #f5b9d977 32%, #ffeb9e77 44%, #a1f4df66 56%, #b1d6ff77 70%, #e4baff66 84%, #9af4ed66 100%);
+  background-size: 100% 100%, 240% 240%;
+  mix-blend-mode: soft-light;
+  animation: foil-iridescence 5.8s ease-in-out infinite alternate;
 }
 .rare-sticker::after {
   background:
-    linear-gradient(112deg, transparent 14%, #9eece433 27%, #fff8 35%, #fff 42%, #fff5 47%, #e5b9ffdf 51%, #fff 55%, #b8fff4b3 61%, transparent 77%);
-  background-size: 260% 125%;
+    linear-gradient(112deg, transparent 14%, #9eece422 27%, #fff5 35%, #fff9 42%, #fff4 47%, #e5b9ff88 51%, #fff9 55%, #b8fff466 61%, transparent 77%);
+  background-size: 240% 125%;
   background-position: 120% 0;
-  opacity: .96;
+  opacity: .58;
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 1px #fff);
-  animation: foil-sweep 2.7s ease-in-out infinite;
+  animation: foil-sweep 4.6s ease-in-out infinite;
 }
-.rare-sticker[data-lifted="true"]::before { opacity: .5 !important; }
-.rare-sticker[data-lifted="true"]::after { opacity: 1 !important; }
+.rare-sticker[data-lifted="true"]::before { opacity: .34 !important; }
+.rare-sticker[data-lifted="true"]::after { opacity: .68 !important; }
 .shared-sticker.rare-sticker { width: 84px; height: 84px; }
 .shared-sticker.rare-sticker::before { width: var(--art-width,100%); height: var(--art-height,100%); }
 .shared-sticker.rare-sticker::after { width: var(--art-width,100%); height: var(--art-height,100%); }

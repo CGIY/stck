@@ -16,7 +16,9 @@ let identityVersion = 0,
 let previewMode = false,
   inventory = new Map(),
   boardRows = [],
-  lastDraw = null;
+  lastDraw = null,
+  sharedTokens = 0,
+  archivedChallenges = [];
 const placementKey = (row) =>
   [row.copy_owner || "preview", row.sticker_id, row.copy_no || 1].join(":");
 const status = document.createElement("p");
@@ -34,6 +36,36 @@ function say(text) {
     .querySelector(".account-feedback")
     ?.replaceChildren(document.createTextNode(text));
 }
+function renderWallet() {
+  const balance = document.querySelector("#wallet-balance");
+  if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
+  const count = document.querySelector("#archive-count");
+  if (count) count.textContent = String(archivedChallenges.length);
+  const pouchBalance = document.querySelector("#wallet-display");
+  if (pouchBalance) pouchBalance.textContent = previewMode || !client
+    ? "Aperçu : aucun jeton dépensé"
+    : `Solde commun : ${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"} · 3 pour une pochette`;
+}
+const archiveDialog = document.createElement("dialog");
+archiveDialog.className = "archive-dialog";
+archiveDialog.innerHTML = '<h2>Défis réalisés</h2><ul></ul><button type="button">Fermer</button>';
+document.body.append(archiveDialog);
+archiveDialog.querySelector("button").onclick = () => archiveDialog.close();
+document.querySelector("#archive-open")?.addEventListener("click", () => {
+  const list = archiveDialog.querySelector("ul");
+  list.replaceChildren();
+  for (const row of archivedChallenges) {
+    const item = document.createElement("li");
+    item.textContent = catalog.find((entry) => entry.id === row.sticker_id)?.title || row.sticker_id;
+    list.append(item);
+  }
+  if (!archivedChallenges.length) {
+    const item = document.createElement("li");
+    item.textContent = "Les défis terminés apparaîtront ici.";
+    list.append(item);
+  }
+  archiveDialog.showModal();
+});
 const button = document.createElement("button");
 button.className = "account-button";
 button.type = "button";
@@ -269,6 +301,7 @@ function refreshStock() {
 }
 function startPreview() {
   previewMode = true;
+  renderWallet();
   sessionStorage.setItem("stck:preview-mode", "true");
   let counts = {};
   try {
@@ -284,6 +317,9 @@ function startPreview() {
 function clearIdentity() {
   identityVersion++;
   previewMode = false;
+  sharedTokens = 0;
+  archivedChallenges = [];
+  renderWallet();
   document.dispatchEvent(new Event("stck:identity"));
   setDiscoveries([]);
   restoreBoard([]);
@@ -325,6 +361,8 @@ const bridge = {
       sessionStorage.setItem(key, request);
     }
     lastDraw = await checked(client.rpc("draw_pouch", { p_request: request }));
+    sharedTokens = lastDraw.tokens ?? sharedTokens;
+    renderWallet();
     const id = lastDraw.sticker_id;
     if (uid !== user?.id || version !== identityVersion)
       throw Error("Le compte a changé. Rouvre ta pochette.");
@@ -347,6 +385,7 @@ const bridge = {
     );
     refreshDiscoveries().catch(handleError);
   },
+  getWallet: () => sharedTokens,
 };
 window.STCK = bridge;
 function restoreBoard(rows) {
@@ -390,7 +429,7 @@ async function loadSpace() {
   const data = await checked(
     client
       .from("spaces")
-      .select("id,owner_id,partner_id,left_label,right_label")
+      .select("id,owner_id,partner_id,left_label,right_label,tokens")
       .maybeSingle(),
   );
   if (user?.id !== uid || version !== identityVersion) return;
@@ -400,6 +439,8 @@ async function loadSpace() {
     show();
     return;
   }
+  sharedTokens = space.tokens || 0;
+  renderWallet();
   view("account");
   bridge.ready = true;
   const rows = await checked(
@@ -410,6 +451,7 @@ async function loadSpace() {
   );
   if (uid !== user?.id || version !== identityVersion) return;
   restoreBoard(rows);
+  await refreshWalletAndArchive();
   await refreshDiscoveries();
   await refreshAccount();
   clearInterval(poll);
@@ -441,8 +483,22 @@ async function reloadBoard() {
     version === identityVersion &&
     !pending.size &&
     !syncing
-  )
+  ) {
     restoreBoard(rows);
+    await refreshWalletAndArchive();
+  }
+}
+async function refreshWalletAndArchive() {
+  if (!space || !user) return;
+  const sid=space.id, uid=user.id, version=identityVersion;
+  const [wallet, archive] = await Promise.all([
+    checked(client.from("spaces").select("tokens").eq("id",sid).single()),
+    checked(client.from("challenge_archive").select("sticker_id,completed_at").eq("space_id",sid).order("completed_at",{ascending:false}).limit(500)),
+  ]);
+  if (user?.id !== uid || space?.id !== sid || version !== identityVersion) return;
+  sharedTokens=wallet.tokens||0;
+  archivedChallenges=archive;
+  renderWallet();
 }
 async function refreshDiscoveries() {
   if (!user) return;
@@ -511,13 +567,26 @@ document.addEventListener("stck:challenge-action", async (event) => {
       completed_at: action === "done" ? new Date().toISOString() : null,
     });
     boardRows = boardRows.map((row) => placementKey(row) === key ? changed : row);
+    if (action === "done") { boardRows = boardRows.filter((row) => placementKey(row) !== key); sharedTokens++; archivedChallenges.unshift({sticker_id:current.sticker_id,completed_at:new Date().toISOString()}); renderWallet(); }
     cache(boardRows);
-    document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: changed }));
+    document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: action === "done" ? { ...current, removed: true } : changed }));
     return say(action === "accept" ? "Tu as choisi de relever ce défi." : action === "done" ? "Défi marqué comme réalisé ensemble." : "Tu as changé d’avis, le défi reste en attente.");
   }
   if (action === "accept" && (currentStatus !== "open" || current.placed_by === user.id)) return say("Ce défi n’est plus disponible pour toi.");
   if (action !== "accept" && (currentStatus !== "accepted" || current.accepted_by !== user.id)) return say("Seule la personne qui l’a relevé peut changer son statut.");
   try {
+    if (action === "done") {
+      const result = await checked(client.rpc("complete_challenge", {
+        p_space: space.id, p_sticker: current.sticker_id,
+        p_copy_owner: current.copy_owner, p_copy_no: current.copy_no,
+      }));
+      boardRows = boardRows.filter((row) => placementKey(row) !== key);
+      sharedTokens = result.tokens ?? sharedTokens;
+      document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: { ...current, removed: true } }));
+      await refreshWalletAndArchive();
+      say("Défi archivé : +1 jeton pour votre duo.");
+      return;
+    }
     let query = client.from("placements").update({ challenge_status: wantedStatus })
       .eq("space_id", space.id)
       .eq("sticker_id", current.sticker_id)

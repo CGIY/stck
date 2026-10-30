@@ -134,9 +134,9 @@
     $('groundShadow').style.transform='scale('+clamp(1-p.jump*.003,.5,1.2)+')';
   }
 
-  // Painted vapor is continuously advected on the GPU. The permanent clearing
+  // Cartoon vapor is continuously advected on the GPU. The permanent clearing
   // mask stays in screen coordinates, independently of the moving smoke.
-  const smokeArt=new Image();smokeArt.src='assets/pochette-smoke-v5.webp';
+  const smokeArt=new Image();smokeArt.src='assets/pochette-smoke-v6.webp';
   let smokeReady=false,flow=null;
   function createFlow(image){
     const surface=document.createElement('canvas');surface.width=surface.height=800;
