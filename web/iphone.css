@@ -112,10 +112,22 @@ body[data-collection-ready="false"] .peel-sticker {
   transition: opacity .18s ease, transform .28s cubic-bezier(.2,.8,.2,1);
   pointer-events: none;
 }
-.shared-sticker.is-unpeeling .peel-curl,
+.shared-sticker[data-peeled="true"] .peel-curl {
+  opacity: .72;
+  transform: perspective(48px) rotateY(-32deg) scale(.86);
+}
+.shared-sticker.is-unpeeling .peel-curl {
+  animation: sticker-unpeel .76s cubic-bezier(.2,.8,.2,1) both;
+}
 .shared-sticker[data-lifted="true"] .peel-curl {
-  opacity: .96;
-  transform: perspective(48px) rotateY(-20deg) scale(1);
+  opacity: .98;
+  transform: perspective(48px) rotateY(-14deg) scale(1.04);
+}
+@keyframes sticker-unpeel {
+  0% { opacity: 0; transform: perspective(48px) rotateY(-82deg) scale(.56); }
+  42% { opacity: 1; transform: perspective(48px) rotateY(12deg) scale(1.08); }
+  68% { opacity: .9; transform: perspective(48px) rotateY(-42deg) scale(.92); }
+  100% { opacity: .72; transform: perspective(48px) rotateY(-32deg) scale(.86); }
 }
 .shared-sticker.is-arriving { animation: sticker-arrive .55s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes sticker-arrive {
