@@ -36,14 +36,14 @@ body {
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -2.5%;
   z-index: -1;
   pointer-events: none;
-  background: url("assets/forest-cartoon-v2.webp")
-    calc(50% + var(--tilt-x, 0px)) calc(50% + var(--tilt-y, 0px)) / 106% 106%
-    no-repeat;
-  transition: background-position 700ms ease-out;
-  animation: forest-drift 32s ease-in-out infinite alternate;
+  background: url("assets/forest-cartoon-v2.webp") center / 106% 106% no-repeat;
+  transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)) scale(1.015);
+  transform-origin: center;
+  animation: forest-drift 44s ease-in-out infinite alternate;
+  will-change: transform;
 }
 body {
   isolation: isolate;
@@ -51,23 +51,6 @@ body {
 body::after {
   opacity: 0.4;
 }
-.forest-parallax {
-  position: fixed;
-  z-index: 1;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  transform: translate(calc(var(--tilt-x, 0px) * .55), calc(var(--tilt-y, 0px) * .55));
-  transition: transform 900ms cubic-bezier(.2,.7,.2,1);
-}
-.forest-canopy-left { translate: calc(var(--tilt-x, 0px) * -.4) calc(var(--tilt-y, 0px) * -.3); animation: canopy-sway 18s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: left top; }
-.forest-canopy-right { translate: calc(var(--tilt-x, 0px) * -.5) calc(var(--tilt-y, 0px) * -.35); animation: canopy-sway 22s ease-in-out infinite alternate-reverse; transform-box: fill-box; transform-origin: right top; }
-.forest-foreground-left { translate: calc(var(--tilt-x, 0px) * -1) calc(var(--tilt-y, 0px) * -.8); animation: fern-breathe 11s ease-in-out infinite alternate; }
-.forest-foreground-right { translate: calc(var(--tilt-x, 0px) * -1.1) calc(var(--tilt-y, 0px) * -.85); animation: fern-breathe 13s ease-in-out infinite alternate-reverse; }
-@keyframes canopy-sway { to { rotate: 1.1deg; } }
-@keyframes fern-breathe { to { rotate: -.8deg; } }
 .app-header {
   padding-bottom: 6px;
 }
@@ -144,12 +127,8 @@ body::after {
   text-align: center;
 }
 @keyframes forest-drift {
-  from {
-    background-position: 49.7% 49.7%;
-  }
-  to {
-    background-position: 50.3% 50.3%;
-  }
+  from { transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)) scale(1.015); }
+  to { transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)) scale(1.035); }
 }
 .drop-target.is-hovered {
   background: #d0dfbc;
@@ -283,7 +262,6 @@ body::after {
 @media (max-width: 600px) {
   body::before {
     background-size: auto 100dvh;
-    background-position: 48% center;
   }
   .prototype {
     padding-top: 8px;
@@ -302,8 +280,39 @@ body::after {
     transition: none;
     animation: none;
   }
+  body::before { transform: none; }
   .pouch-link {
     transition: none;
   }
-  .forest-parallax, .forest-canopy-left, .forest-canopy-right, .forest-foreground-left, .forest-foreground-right, .sticker-logo, .sticker-sheet.is-front, .challenge-dialog[open] { animation: none !important; transition: none !important; }
+  .sticker-logo, .sticker-sheet.is-front, .challenge-dialog[open] { animation: none !important; transition: none !important; }
 }
+
+.board-area .pouch-link {
+  color: #344735;
+  font-size: 14px;
+  font-weight: 750;
+}
+.daily-pouch-link {
+  background: #3f654c;
+  box-shadow: inset 0 1px #ffffff55, 0 2px 5px #263f3228;
+  font-weight: 750;
+}
+.season-heading {
+  width: max-content;
+  min-height: 32px;
+  gap: 7px;
+  margin: 0 auto 12px;
+  padding: 5px 14px;
+  border: 1px solid #fff9e6;
+  border-radius: 999px;
+  background: #f8f3dfed;
+  box-shadow: inset 0 1px #fff, 0 3px 8px #263f3220;
+  color: #43513f;
+  font-size: 12px;
+  letter-spacing: .1em;
+}
+.season-heading strong {
+  color: #294d39;
+  font-size: 21px;
+}
+.season-heading i { display: none; }
