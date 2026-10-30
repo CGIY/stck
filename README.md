@@ -6,7 +6,7 @@ Le projet est indépendant des autres applications. Le prototype d’origine et 
 
 ## État de la publication
 
-Le code, les images optimisées, la base Supabase, le service de notifications et les workflows GitHub sont préparés. La base distante et les notifications ne sont pas encore activées : la connexion Supabase doit autoriser la nouvelle organisation **STCK**. L’hébergement public reste à configurer après cette étape.
+Le code, les images optimisées, la base Supabase, le service de notifications et les workflows GitHub sont préparés. La base distante et les notifications ne sont pas encore activées : la connexion Supabase doit autoriser la nouvelle organisation **STCK**. L’hébergement public reste aussi à choisir : GitHub Pages n’est pas disponible pour ce dépôt privé avec l’offre actuelle.
 
 ## Fonctionnement
 

@@ -45,7 +45,7 @@ STCK_SUPABASE_KEY=clé publique publishable
 
 En local, `config.local.json` peut contenir les champs `supabaseUrl` et `supabaseKey` et reste ignoré par Git. Une clé `service_role` ou `sb_secret_…` ne doit jamais être utilisée pour compiler le site.
 
-Pour GitHub Pages, renseigner les deux variables dans les variables Actions du dépôt, activer Pages avec GitHub Actions, puis lancer manuellement « Publier STCK ». Un dépôt privé requiert une offre GitHub compatible avec Pages ; si elle ne l’est pas, conserver le dépôt privé et choisir un hébergeur HTTPS compatible plutôt que rendre le dépôt public implicitement. Le dossier `dist/` est portable.
+Pour GitHub Pages, renseigner les deux variables dans les variables Actions du dépôt, activer Pages avec GitHub Actions, puis lancer manuellement « Publier STCK ». Le 30 octobre 2026, les réglages GitHub du dépôt indiquent que l’offre actuelle ne permet pas Pages pour un dépôt privé. Le choix entre un autre hébergement HTTPS et la publication du code et des images dans un dépôt public reste à valider. Ne pas modifier la visibilité du dépôt implicitement. Le dossier `dist/` est portable.
 
 Le workflow de publication exécute les tests, compile avec la vraie configuration, contrôle les ressources et publie seulement si ces étapes réussissent. Aucun déploiement de production n’est lancé par les simples poussées de code.
 
