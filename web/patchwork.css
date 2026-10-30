@@ -117,6 +117,8 @@ body::after {
   background: #476a53;
 }
 .topbar {
+  display: flex;
+  align-items: center;
   max-width: 960px;
   margin: auto;
   padding-left: 22px;
@@ -127,6 +129,9 @@ body::after {
   margin-right: auto;
 }
 .topbar .back-link {
+  position: static;
+  order: -1;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   display: grid;
@@ -163,6 +168,9 @@ body::after {
   .prototype {
     padding-top: 8px;
   }
+}
+@media (max-width: 370px) {
+  .sheet-navigation { gap: 0; padding: 1px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pouch-link {
