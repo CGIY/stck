@@ -105,16 +105,17 @@
     const ey=(open,closed,angry=0)=>lerp(open+angry*a,closed,c);
     const lowerCenter=lerp(626,650,c);
     const lowerOuter=lerp(883,878,c), lowerRight=lerp(746,786,c), lowerLeft=lerp(499,527,c), lowerInner=lerp(389,390,c);
-    const d='M386 470 C390 '+ey(402,458,6)+' 527 '+ey(330,449,5)+' 650 '+ey(333,450,100)+' C786 '+ey(331,449,5)+' 878 '+ey(387,458,10)+' 879 470 C'+lowerOuter+' '+ey(551,458,-12)+' '+lowerRight+' '+ey(602,449,-22)+' '+lowerCenter+' '+ey(601,450,-22)+' C'+lowerLeft+' '+ey(600,449,-12)+' '+lowerInner+' '+ey(561,458,-8)+' 386 470Z';
+    const d='M386 470 C390 '+ey(402,458,6)+' 527 '+ey(347,449,5)+' 650 '+ey(350,450,100)+' C786 '+ey(347,449,5)+' 878 '+ey(387,458,10)+' 879 470 C'+lowerOuter+' '+ey(542,458,-12)+' '+lowerRight+' '+ey(575,449,-22)+' '+lowerCenter+' '+ey(575,450,-22)+' C'+lowerLeft+' '+ey(574,449,-12)+' '+lowerInner+' '+ey(561,458,-8)+' 386 470Z';
     set('eyeWhite','d',d);set('eyeClipPath','d',d);
     set('eyeWhite','stroke-width',lerp(23,14,c));
     const crease=(open,closed)=>lerp(open,closed,c);
     set('eyeCrease','opacity',lerp(.45-a*.3,.78,c));
     set('eyeCrease','d','M415 '+crease(347,455)+' C480 '+crease(266,421)+' 699 '+crease(239,421)+' 850 '+crease(324,455));
-    set('gaze','transform','translate('+(640+gaze.x+p.gx)+' '+(465+gaze.y+p.gy)+') scale('+p.pupil+')');
+    const gazeY=clamp(gaze.y+p.gy,-22,22);
+    set('gaze','transform','translate('+(640+gaze.x+p.gx)+' '+(465+gazeY)+') scale('+p.pupil+')');
     // A tapered, asymmetric fold follows the orbital arch. Curvature and weight
     // change together, so anger reads as muscle tension rather than a rigid V.
-    const by=top-24, pinch=a*86, weight=10+a*15, lift=p.gy*.05;
+    const by=260, pinch=a*86, weight=10+a*15, lift=p.gy*.05;
     set('brow','opacity',.32+a*.68);
     set('brow','d',`M400 ${by+67}
       C442 ${by-5+lift} 536 ${by-30+pinch*.45} 628 ${by-6+pinch}
