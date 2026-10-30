@@ -42,15 +42,15 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  margin: 0 auto 4px;
-  color: #727b6a;
-  font: 650 11px/1 system-ui, sans-serif;
+  margin: 0 auto 12px;
+  color: #43513f;
+  font: 700 12px/1 system-ui, sans-serif;
   letter-spacing: .13em;
   text-transform: uppercase;
 }
 .season-heading strong {
-  color: #485542;
-  font: italic 19px/1 Georgia, serif;
+  color: #294d39;
+  font: italic 21px/1 Georgia, serif;
   letter-spacing: 0;
 }
 .season-heading i {
