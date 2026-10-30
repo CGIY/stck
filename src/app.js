@@ -360,7 +360,14 @@ function decoratePlacement(row) {
   const author = row.placed_by;
   return {
     ...row,
+    challenge_status: row.challenge_status || "open",
     ownCopy: previewMode || row.copy_owner === user?.id,
+    challengeAuthorIsMe: author
+      ? author === user?.id
+      : previewMode,
+    challengeAcceptedByMe: row.accepted_by
+      ? row.accepted_by === user?.id || (previewMode && row.accepted_by === "preview-partner")
+      : false,
     authorMark: author
       ? author === space?.owner_id
         ? "A"
@@ -398,7 +405,7 @@ async function loadSpace() {
   const rows = await checked(
     client
       .from("placements")
-      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at")
       .eq("space_id", space.id),
   );
   if (uid !== user?.id || version !== identityVersion) return;
@@ -425,7 +432,7 @@ async function reloadBoard() {
   const rows = await checked(
     client
       .from("placements")
-      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no")
+      .select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at")
       .eq("space_id", sid),
   );
   if (
@@ -486,6 +493,50 @@ document.addEventListener("stck:placement", (event) => {
   pending.set(placementKey(row), { ...decorated, version: ++generation });
   savePending();
   flush().catch(handleError);
+});
+document.addEventListener("stck:challenge-action", async (event) => {
+  const { action, ...snapshot } = event.detail;
+  const key = placementKey(snapshot);
+  const current = boardRows.find((row) => placementKey(row) === key);
+  if (!current) return;
+  const currentStatus = current.challenge_status || "open";
+  const wantedStatus = action === "accept" ? "accepted" : action === "done" ? "done" : "open";
+  if (previewMode || !user || !space) {
+    if (action === "accept" && currentStatus !== "open") return say("Ce défi a déjà évolué.");
+    if (action !== "accept" && (currentStatus !== "accepted" || current.accepted_by !== "preview-partner")) return say("Seule la personne qui a relevé le défi peut changer son statut.");
+    const changed = decoratePlacement({
+      ...current,
+      challenge_status: wantedStatus,
+      accepted_by: action === "accept" ? "preview-partner" : action === "reopen" ? null : current.accepted_by,
+      completed_at: action === "done" ? new Date().toISOString() : null,
+    });
+    boardRows = boardRows.map((row) => placementKey(row) === key ? changed : row);
+    cache(boardRows);
+    document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: changed }));
+    return say(action === "accept" ? "Tu as choisi de relever ce défi." : action === "done" ? "Défi marqué comme réalisé ensemble." : "Tu as changé d’avis, le défi reste en attente.");
+  }
+  if (action === "accept" && (currentStatus !== "open" || current.placed_by === user.id)) return say("Ce défi n’est plus disponible pour toi.");
+  if (action !== "accept" && (currentStatus !== "accepted" || current.accepted_by !== user.id)) return say("Seule la personne qui l’a relevé peut changer son statut.");
+  try {
+    let query = client.from("placements").update({ challenge_status: wantedStatus })
+      .eq("space_id", space.id)
+      .eq("sticker_id", current.sticker_id)
+      .eq("copy_owner", current.copy_owner)
+      .eq("copy_no", current.copy_no)
+      .eq("challenge_status", currentStatus);
+    if (currentStatus === "accepted") query = query.eq("accepted_by", current.accepted_by);
+    const updated = await checked(query.select("sticker_id,zone,x,y,placed_by,copy_owner,copy_no,challenge_status,accepted_by,completed_at").maybeSingle());
+    if (!updated) {
+      await reloadBoard();
+      throw Error("Ce défi vient d’évoluer sur l’autre téléphone. Regarde son nouveau statut.");
+    }
+    const changed = decoratePlacement(updated);
+    boardRows = boardRows.map((row) => placementKey(row) === key ? changed : row);
+    document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: changed }));
+    say(action === "accept" ? "Tu as choisi de relever ce défi." : action === "done" ? "Défi marqué comme réalisé ensemble." : "Tu as changé d’avis, le défi reste en attente.");
+  } catch (error) {
+    handleError(error);
+  }
 });
 function pendingKey() {
   return "stck:pending:" + user.id + ":" + space.id;

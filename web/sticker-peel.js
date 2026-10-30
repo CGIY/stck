@@ -43,6 +43,70 @@
   document.addEventListener('stck:library',hideCaption);
   document.addEventListener('stck:identity',hideCaption);
 
+  const challengeDialog = document.createElement('dialog');
+  challengeDialog.className = 'challenge-dialog';
+  challengeDialog.setAttribute('aria-labelledby', 'challenge-title');
+  challengeDialog.innerHTML = '<button class="challenge-close" type="button" aria-label="Fermer">×</button><p class="challenge-kicker">DÉFI À DEUX</p><h2 id="challenge-title"></h2><p class="challenge-author"></p><p class="challenge-status" role="status"></p><p class="challenge-note">Tu peux accepter à ton rythme. Le défi ne sera considéré réalisé que lorsque vous l’aurez fait ensemble.</p><div class="challenge-actions"></div>';
+  document.body.append(challengeDialog);
+  const challengeTitle = challengeDialog.querySelector('#challenge-title');
+  const challengeAuthor = challengeDialog.querySelector('.challenge-author');
+  const challengeStatus = challengeDialog.querySelector('.challenge-status');
+  const challengeNote = challengeDialog.querySelector('.challenge-note');
+  const challengeActions = challengeDialog.querySelector('.challenge-actions');
+  let activeChallenge = null;
+  function challengeAction(label, action, secondary = false) {
+    const control = document.createElement('button');
+    control.type = 'button';
+    control.className = secondary ? 'secondary' : 'primary';
+    control.textContent = label;
+    control.addEventListener('click', () => {
+      if (!activeChallenge) return;
+      document.dispatchEvent(new CustomEvent('stck:challenge-action', {
+        detail: { ...activeChallenge.row, action },
+      }));
+      challengeDialog.close();
+    });
+    challengeActions.append(control);
+  }
+  function showChallenge(entry) {
+    const row = entry.row;
+    const label = states.find((item) => item.id === row.sticker_id)?.button.getAttribute('aria-label')?.replace(/, décoller et déplacer$/, '') || 'Challenge';
+    activeChallenge = entry;
+    challengeTitle.textContent = label;
+    challengeAuthor.textContent = row.authorLabel || 'Proposition partagée';
+    challengeActions.replaceChildren();
+    const status = row.challenge_status || 'open';
+    challengeDialog.dataset.status = status;
+    if (status === 'done') {
+      challengeStatus.textContent = 'Réalisé ensemble ✓';
+      challengeNote.textContent = 'Vous avez relevé ce défi à deux.';
+    } else if (status === 'accepted' && row.challengeAcceptedByMe) {
+      challengeStatus.textContent = 'Tu as choisi de le relever.';
+      challengeNote.textContent = 'Quand vous l’aurez fait ensemble, tu pourras le marquer comme réalisé.';
+      challengeAction('On l’a fait ensemble', 'done');
+      challengeAction('Je change d’avis', 'reopen', true);
+    } else if (status === 'accepted') {
+      challengeStatus.textContent = 'L’autre personne a choisi de le relever.';
+      challengeNote.textContent = 'Prenez le temps d’en parler ensemble. La personne qui l’a accepté peut encore changer d’avis.';
+    } else if (row.challengeAuthorIsMe) {
+      challengeStatus.textContent = 'En attente de l’autre personne.';
+      challengeNote.textContent = 'C’est une proposition : l’autre participant peut la relever quand il en a envie.';
+    } else {
+      challengeStatus.textContent = 'À relever si tu en as envie.';
+      challengeNote.textContent = 'Une proposition à vivre ensemble, à ton rythme et avec l’accord de chacun.';
+      challengeAction('Ça me tente, je le relève', 'accept');
+    }
+    if (!challengeDialog.open) challengeDialog.showModal();
+  }
+  challengeDialog.querySelector('.challenge-close').addEventListener('click', () => challengeDialog.close());
+  challengeDialog.addEventListener('click', (event) => {
+    if (event.target === challengeDialog) challengeDialog.close();
+  });
+  document.addEventListener('stck:identity', () => {
+    activeChallenge = null;
+    if (challengeDialog.open) challengeDialog.close();
+  });
+
   const logoCut = document.getElementById('logoCutPath');
   const logoFold = document.getElementById('logoFold');
   let logoFrame = 0;
@@ -288,10 +352,10 @@
       state.button.dataset.placed = String(state.placed);
     });
     dropZones.forEach((zone) => {
-      zone.classList.toggle('has-sticker', states.some((state) => state.placed && state.dropZone === zone));
+      zone.classList.toggle('has-sticker', states.some((state) => state.placed && state.dropZone === zone) || [...board.values()].some((entry) => !entry.row.removed));
       zone.classList.remove('is-hovered');
     });
-    dropTarget.classList.toggle('target-used', states.some((state) => state.placed));
+    dropTarget.classList.toggle('target-used', states.some((state) => state.placed) || [...board.values()].some((entry) => !entry.row.removed));
   }
 
   function setPosition(state, left, top) {
@@ -650,15 +714,24 @@
   }
   function applyPlacement(row) {
     let entry = board.get(placementKey(row));
-    if (row.removed) { entry?.button.remove(); board.delete(placementKey(row)); return; }
+    if (row.removed) { entry?.button.remove(); board.delete(placementKey(row)); updateDropTarget(); return; }
     if (!dropZones[row.zone] || !Number.isFinite(row.x) || !Number.isFinite(row.y)) return;
     if (!entry) {
       const source = states.find(s => s.id === row.sticker_id); if (!source) return;
       const button = document.createElement('button'); button.type = 'button'; button.className = 'shared-sticker';
       button.setAttribute('aria-label', source.button.getAttribute('aria-label'));
       const image = source.image.cloneNode(); image.removeAttribute('data-label-path');
+      for (const property of ['--art-left','--art-top','--art-width','--art-height']) {
+        button.style.setProperty(property, source.button.style.getPropertyValue(property));
+      }
+      const rare = source.button.classList.contains('rare-sticker');
+      if (rare) {
+        button.classList.add('rare-sticker');
+        button.style.setProperty('--sticker-art', `url("${image.getAttribute('src')}")`);
+      }
       const author = document.createElement('span'); author.className = 'sticker-author'; author.setAttribute('aria-hidden','true');
-      button.append(image, author); stage.append(button);
+      const challengeChip = document.createElement('span'); challengeChip.className = 'challenge-chip'; challengeChip.setAttribute('aria-hidden','true');
+      button.append(image, author, challengeChip); stage.append(button);
       entry = { button, row }; board.set(placementKey(row), entry);
       button.onpointerdown = e => {
         if (e.button !== 0 || boardGesture || gesture) return;
@@ -691,11 +764,11 @@
             const r = zone.getBoundingClientRect(), br = button.getBoundingClientRect(); entry.row = { ...entry.row, zone: 0, x: clamp((br.left+br.width/2-r.left)/r.width,-.5,1.5), y: clamp((br.top+br.height/2-r.top)/r.height,-.5,1.5) };
             document.dispatchEvent(new CustomEvent('stck:placement', { detail: entry.row }));
           }
-        } else if (!cancel) showCaption(entry);
+        } else if (!cancel) showChallenge(entry);
         placeBoard(entry);
       }
       button.onpointerup = e => end(e); button.onpointercancel = e => end(e,true); button.onlostpointercapture = e => end(e,true);
-      button.onclick = e => { if (e.detail === 0) showCaption(entry); };
+      button.onclick = e => { if (e.detail === 0) showChallenge(entry); };
       button.onkeydown = e => {
         if (entry.row.ownCopy && (e.key === 'Delete' || e.key === 'Backspace')) {
           e.preventDefault();
@@ -708,9 +781,15 @@
     author.textContent = row.authorMark || '';
     author.hidden = !row.authorMark;
     entry.button.dataset.author = row.authorMark || '';
+    const challengeChip = entry.button.querySelector('.challenge-chip');
+    const status = row.challenge_status || 'open';
+    const chipLabel = status === 'done' ? 'Fait' : status === 'accepted' ? 'En cours' : 'À relever';
+    challengeChip.textContent = chipLabel;
+    entry.button.dataset.challengeStatus = status;
     const label = states.find(s => s.id === row.sticker_id).button.getAttribute('aria-label').replace(/, décoller et déplacer$/,'');
-    entry.button.setAttribute('aria-label', label + (row.authorLabel ? ' · ' + row.authorLabel : ''));
+    entry.button.setAttribute('aria-label', `${label} · ${row.authorLabel || 'Proposition partagée'} · ${chipLabel}. Toucher pour voir le défi.`);
     placeBoard(entry);
+    updateDropTarget();
   }
   document.addEventListener('stck:restore', e => {
     if (gesture || boardGesture) return;
