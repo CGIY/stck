@@ -39,7 +39,14 @@ body::before {
   inset: -2.5%;
   z-index: -1;
   pointer-events: none;
-  background: url("assets/forest-cartoon-v2.webp") center / 106% 106% no-repeat;
+  background-image:
+    radial-gradient(circle at 16% 28%, #fff2d522 0 1.2%, transparent 11%),
+    radial-gradient(circle at 78% 34%, #d6e6d52b 0 1%, transparent 10%),
+    radial-gradient(circle at 56% 76%, #f1d8ad1e 0 1.5%, transparent 12%),
+    url("assets/forest-cartoon-v2.webp");
+  background-position: center, center, center, center;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 106% 106%;
+  background-repeat: no-repeat;
   transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)) scale(1.015);
   transform-origin: center;
   animation: forest-drift 44s ease-in-out infinite alternate;
@@ -49,22 +56,27 @@ body {
   isolation: isolate;
 }
 body::after {
-  opacity: 0.4;
+  z-index: 0;
+  opacity: 0.52;
 }
+.prototype { position: relative; z-index: 1; }
 .app-header {
   padding-bottom: 6px;
 }
 .sticker-logo {
-  width: 132px;
+  width: 160px;
   filter: drop-shadow(1px 3px 0 #283b2c76) drop-shadow(0 7px 8px #1f382b4a);
 }
 .account-button {
-  background: #faf4dd;
-  border: 3px solid #fff9e8;
+  background: #faf4ddc9;
+  border: 3px solid #fff9e8cc;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: .9;
   box-shadow:
     1px 3px 0 #40544350,
     0 5px 8px #263f3220;
-  transform: rotate(4deg);
+  transform: rotate(10deg);
 }
 .board-area {
   display: grid;
@@ -89,6 +101,18 @@ body::after {
   transform: rotate(-0.5deg);
   margin: 0;
   padding: 10px 18px;
+}
+.pouch-cost {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #6d76535c;
+  border-radius: 999px;
+  background: #fff8e1b8;
+  box-shadow: inset 0 1px #ffffffc9;
+  font-size: .9em;
+  white-space: nowrap;
 }
 .board-area .pouch-link:active {
   transform: translateY(2px) rotate(-0.5deg);
@@ -116,15 +140,6 @@ body::after {
     calc(var(--tilt-y, 0px) * -0.16)
   );
   transition: transform 800ms ease-out;
-}
-.motion-toggle {
-  margin-top: 14px;
-  width: 100%;
-}
-.motion-help {
-  font-size: 12px;
-  color: #65705d;
-  text-align: center;
 }
 @keyframes forest-drift {
   from { transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)) scale(1.015); }
@@ -183,9 +198,9 @@ body::after {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 9px;
-  min-height: 48px;
-  padding: 7px 12px;
+  gap: 14px;
+  min-height: 56px;
+  padding: 9px 14px;
   border: 1px solid #fff9e6d9;
   border-radius: 999px;
   background: #f7f2dfd4;
@@ -193,12 +208,26 @@ body::after {
   backdrop-filter: blur(16px) saturate(1.3);
   -webkit-backdrop-filter: blur(16px) saturate(1.3);
 }
+.wallet-balance {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  min-width: 112px;
+  padding: 6px 12px;
+  border: 1px solid #65785c;
+  border-radius: 14px;
+  background: #fff9e9f5;
+  box-shadow: inset 0 1px #fff, 0 2px 4px #293d2e1c;
+}
+.wallet-label {
+  color: #65705d;
+  font: 700 9px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
 .token-strip #wallet-balance {
   color: #344735;
-  border-color: #78896a;
-  background: #fdf9e9f2;
-  box-shadow: inset 0 1px #fff, 0 2px 4px #293d2e1c;
-  font-weight: 750;
+  font: 800 15px/1.15 system-ui, sans-serif;
 }
 .daily-pouch-link { box-shadow: inset 0 1px #ffffff48, 0 2px 5px #263f3228; transition: transform .2s ease, box-shadow .2s ease; }
 .daily-pouch-link:hover { transform: translateY(-2px); box-shadow: inset 0 1px #ffffff65, 0 5px 10px #263f3233; }
@@ -215,6 +244,12 @@ body::after {
 @keyframes logo-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -2px; } }
 @keyframes sheet-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -1.5px; } }
 @keyframes dialog-enter { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 370px) {
+  .sticker-logo { width: 148px; }
+  .token-strip { gap: 9px; padding-inline: 9px; }
+  .wallet-balance { min-width: 98px; }
+  .daily-pouch-link { padding-inline: 9px; font-size: 11px; }
+}
 .topbar {
   display: flex;
   align-items: center;
@@ -333,3 +368,59 @@ body::after {
   font-size: 21px;
 }
 .season-heading i { display: none; }
+
+/* Compact metadata keeps the album close to the daily reward. */
+.peel-stage { gap: 16px; }
+.sheet-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.sheet-heading .season-tag { font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+
+.token-strip { column-gap: 24px; row-gap: 12px; flex-wrap: wrap; }
+
+/* Until the first discovery, the entire sheet is a grey mystery. */
+.sticker-sheet.is-undiscovered { background: #c4c8c2; }
+.sticker-sheet.is-undiscovered > .sheet-heading,
+.sticker-sheet.is-undiscovered > .sticker-grid { filter: grayscale(1) blur(7px); opacity: .24; }
+.sticker-sheet.is-undiscovered::after {
+  content: '?'; position: absolute; inset: 0; display: grid; place-items: center;
+  color: #626c61; font: italic 96px/1 Georgia,serif; text-shadow: 0 2px 0 #e4e7df;
+  pointer-events: none;
+}
+.sticker-sheet:not(.is-undiscovered) .is-unowned::after { display: none; }
+.sticker-sheet:not(.is-undiscovered) .is-unowned::before {
+  filter: none; opacity: .3; background: #8c9689;
+}
+
+/* The canvas bends the actual alpha silhouette, including its paper reverse. */
+.paper-peel-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.paper-peel-ready > img { visibility: hidden; }
+.paper-peeling.rare-sticker::before,
+.paper-peeling.rare-sticker::after,
+.paper-peeling.prize::before,
+.paper-peeling.prize::after { opacity: 0 !important; }
+.shared-sticker .paper-peel-canvas { filter: drop-shadow(1px 3px 2px #3333); }
+.shared-sticker { overflow: visible; }
+
+.opening .smoke-controls { width: min(290px,calc(100% - 24px)); margin: 8px auto 0; padding: 12px 16px; gap: 10px; }
+.smoke-controls progress { width: 148px; height: 10px; border-radius: 99px; }
+.smoke-controls progress::-webkit-progress-bar { border-radius: 99px; background: #c5cfbd; }
+.smoke-controls progress::-webkit-progress-value { border-radius: 99px; background: #547d69; }
+.smoke-controls progress::-moz-progress-bar { border-radius: 99px; background: #547d69; }
+.opening .reveal-info { width: min(390px,100%); margin-inline: auto; padding: 18px; }
+.reveal-info .another-pouch {
+  display: block; width: 100%; min-height: 54px; padding: 15px 18px; border: 2px solid #fff3cf;
+  background: linear-gradient(135deg,#f5a02a,#dd7127); color: #342e21;
+  font: 750 16px/1.2 system-ui,sans-serif; box-shadow: 0 3px 0 #86532255;
+}
+.another-pouch:focus-visible { outline: 3px solid #3c6349; outline-offset: 3px; }
+.opening .prize { inset: auto; left: 24%; top: 29%; width: 52%; height: auto; aspect-ratio: 1; }
+.opening[data-phase='revealed'] .prize { pointer-events: auto; touch-action: none; cursor: grab; }
+.opening[data-phase='revealed'] .prize:active { cursor: grabbing; }
+.prize:focus-visible { outline: 2px dashed #536f58; outline-offset: 8px; border-radius: 20px; }
+.prize.paper-peel-ready { animation: none; }
+@media(max-width:370px){ .reveal-info .another-pouch { font-size: 14px; } .token-strip { column-gap: 16px; } }
+
+.app-header { align-items: center; flex-wrap: nowrap; gap: 12px; }
+.header-wallet { margin-left: auto; padding: 9px 12px; border: 1px solid #fff8e1; border-radius: 99px; background: #faf4ddd9; color: #344735; box-shadow: 0 2px 5px #263f3220; white-space: nowrap; font: 750 14px/1.2 system-ui,sans-serif; }
+.app-header .account-button { flex-shrink: 0; margin-left: 0; }
+.board-area .token-strip { padding: 9px 12px; min-height: 46px; }
+@media(max-width:370px){ .app-header { gap: 8px; padding-inline: 18px; } .header-wallet { padding: 8px 10px; font-size: 12px; } .app-header .sticker-logo { width: 132px; } }

@@ -124,12 +124,13 @@
       logoCut.setAttribute('d', depth < .2 ? 'M-10 -10H234V110H-10Z' : `M-10 -10H${x}V8L216 ${y}H234V110H-10Z`);
       logoFold.setAttribute('d', depth < .2 ? '' : `M${x} 8 Q${x-2} ${y+2} 216 ${y}Z`);
     }
-    // The logo rests while idle; motion belongs to the paper being handled.
+    if (!reducedMotion && !document.hidden)
+      logoFrame = requestAnimationFrame(animateLogo);
   }
   animateLogo(0);
   document.addEventListener('visibilitychange', () => {
     cancelAnimationFrame(logoFrame);
-    if (!document.hidden) animateLogo(0);
+    if (!document.hidden) animateLogo(performance.now());
   });
 
   function transformCorner(context, corner) {
@@ -714,7 +715,7 @@
   }
   function applyPlacement(row) {
     let entry = board.get(placementKey(row));
-    if (row.removed) { entry?.button.remove(); board.delete(placementKey(row)); updateDropTarget(); return; }
+    if (row.removed) { entry?.paper.dispose(); entry?.button.remove(); board.delete(placementKey(row)); updateDropTarget(); return; }
     if (!dropZones[row.zone] || !Number.isFinite(row.x) || !Number.isFinite(row.y)) return;
     if (!entry) {
       const source = states.find(s => s.id === row.sticker_id); if (!source) return;
@@ -731,23 +732,23 @@
       }
       const author = document.createElement('span'); author.className = 'sticker-author'; author.setAttribute('aria-hidden','true');
       const challengeChip = document.createElement('span'); challengeChip.className = 'challenge-chip'; challengeChip.setAttribute('aria-hidden','true');
-      const curl = document.createElement('span'); curl.className = 'peel-curl'; curl.setAttribute('aria-hidden','true');
-      button.append(image, curl, author, challengeChip); button.dataset.peeled = 'true'; button.classList.add('is-arriving','is-unpeeling');
+      button.append(image, author, challengeChip); button.classList.add('is-arriving');
       window.setTimeout(() => button.classList.remove('is-arriving','is-unpeeling'), 760);
       stage.append(button);
-      entry = { button, row }; board.set(placementKey(row), entry);
+      entry = { button, row, paper: window.StckPaper.attach(button,image,{artRect:source.artRect,rare}) }; board.set(placementKey(row), entry);
       button.onpointerdown = e => {
         if (e.button !== 0 || boardGesture || gesture) return;
         e.preventDefault(); hideCaption();
         const rect = button.getBoundingClientRect();
         boardGesture = { entry, id: e.pointerId, x: e.clientX, y: e.clientY, offsetX: e.clientX-rect.left, offsetY:e.clientY-rect.top, moved: false };
         button.dataset.lifted = 'true';
+        entry.paper.lift((e.clientX-rect.left)/rect.width,(e.clientY-rect.top)/rect.height,.16);
         button.setPointerCapture(e.pointerId);
       };
       button.onpointermove = e => {
         const g = boardGesture; if (!g || g.entry !== entry || e.pointerId !== g.id) return;
         if (Math.hypot(e.clientX - g.x, e.clientY - g.y) < 8) return;
-        g.moved = true; const sr = stage.getBoundingClientRect();
+        g.moved = true; entry.paper.lift(0,0,.34); const sr = stage.getBoundingClientRect();
         button.style.left = (e.clientX - sr.left - g.offsetX) + 'px';
         button.style.top = (e.clientY - sr.top - g.offsetY) + 'px';
       };
@@ -755,6 +756,7 @@
         const g = boardGesture; if (!g || g.entry !== entry || g.id !== e.pointerId) return;
         boardGesture = null;
         button.dataset.lifted = 'false';
+        entry.paper.release();
         if (button.hasPointerCapture(e.pointerId)) button.releasePointerCapture(e.pointerId);
         if (g.moved && !cancel) {
           const zone = findDropZone(entry);
@@ -764,8 +766,7 @@
             return;
           }
           if (zone) {
-            button.dataset.peeled = 'true'; button.classList.add('is-unpeeling');
-            window.setTimeout(() => button.classList.remove('is-unpeeling'), 760);
+            entry.paper.release();
             const r = zone.getBoundingClientRect(), br = button.getBoundingClientRect(); entry.row = { ...entry.row, zone: 0, x: clamp((br.left+br.width/2-r.left)/r.width,-.5,1.5), y: clamp((br.top+br.height/2-r.top)/r.height,-.5,1.5) };
             document.dispatchEvent(new CustomEvent('stck:placement', { detail: entry.row }));
           }
@@ -799,7 +800,7 @@
   document.addEventListener('stck:restore', e => {
     if (gesture || boardGesture) return;
     const incoming = new Set(e.detail.map(placementKey));
-    for (const [id, entry] of board) if (!incoming.has(id)) { entry.button.remove(); board.delete(id); }
+    for (const [id, entry] of board) if (!incoming.has(id)) { entry.paper.dispose(); entry.button.remove(); board.delete(id); }
     e.detail.forEach(applyPlacement);
   });
   document.addEventListener('stck:restore-one', e => { if (!gesture && !boardGesture) applyPlacement(e.detail); });
@@ -818,8 +819,9 @@
       state.button.dataset.copyOwner = item?.copy_owner || 'preview';
       state.button.dataset.copyNo = String(available[0] || 1);
       state.button.disabled = available.length === 0;
-      state.home.classList.toggle('is-unowned', available.length === 0);
-      state.home.dataset.collected = String((item?.count || 0) > 0);
+      const discovered = state.button.dataset.discovered === 'true';
+      state.home.classList.toggle('is-unowned', !discovered);
+      state.home.dataset.collected = String(discovered);
       let badge = state.home.querySelector('.stock-count');
       if (!badge) { badge=document.createElement('span'); badge.className='stock-count'; badge.setAttribute('aria-hidden','true'); state.home.append(badge); }
       badge.textContent = available.length > 1 ? '×'+available.length : '';
@@ -829,7 +831,7 @@
   });
   document.addEventListener('stck:identity', () => {
     cancelGesture(); boardGesture = null; hideCaption();
-    for (const entry of board.values()) entry.button.remove(); board.clear();
+    for (const entry of board.values()) { entry.paper.dispose(); entry.button.remove(); } board.clear();
     states.forEach(state => { state.button.disabled = true; state.home.classList.add('is-unowned'); state.home.dataset.collected = 'false'; });
   });
   new ResizeObserver(() => board.forEach(placeBoard)).observe(stage);

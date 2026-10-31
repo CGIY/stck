@@ -101,8 +101,8 @@ body[data-collection-ready="false"] .peel-sticker {
   z-index: 3;
   top: 3%;
   right: 3%;
-  width: 30%;
-  height: 30%;
+  width: 21%;
+  height: 21%;
   clip-path: polygon(100% 0, 0 0, 100% 100%);
   background: linear-gradient(135deg, #fffef4 0%, #e9e1cf 47%, #bdb39b 50%, #fffdf2 58%, #c9c0aa 100%);
   filter: drop-shadow(-1px 2px 2px #34382d44);
@@ -111,10 +111,6 @@ body[data-collection-ready="false"] .peel-sticker {
   transform-origin: top right;
   transition: opacity .18s ease, transform .28s cubic-bezier(.2,.8,.2,1);
   pointer-events: none;
-}
-.shared-sticker[data-peeled="true"] .peel-curl {
-  opacity: .72;
-  transform: perspective(48px) rotateY(-32deg) scale(.86);
 }
 .shared-sticker.is-unpeeling .peel-curl {
   animation: sticker-unpeel .76s cubic-bezier(.2,.8,.2,1) both;

@@ -29,7 +29,10 @@
     title.textContent = tab.dataset.title;
     const number = document.createElement("span");
     number.textContent = `0${i + 1} / 04`;
-    heading.append(title, number);
+    const meta = document.createElement('div');meta.className='sheet-meta';
+    const season = document.createElement('span');season.className='season-tag';season.textContent='Saison 1';
+    meta.append(season,number);heading.append(title,meta);
+    sheet.classList.add('is-undiscovered');
     grid.hidden = false;
     grid.append(...rare.children);
     rare.remove();
@@ -43,6 +46,16 @@
     tab.append(dot);
   });
   content.append(stack);
+  function updateDiscoveries(event){
+    const discovered=new Set(event.detail || []);
+    sheets.forEach(sheet=>{
+      const known=[...sheet.querySelectorAll('.peel-sticker')].some(button=>discovered.has(button.dataset.stickerId));
+      sheet.classList.toggle('is-undiscovered',!known);
+      sheet.setAttribute('aria-label',known?tabs[sheets.indexOf(sheet)].dataset.title:'Planche à découvrir');
+    });
+  }
+  document.addEventListener('stck:discoveries',updateDiscoveries);
+  document.addEventListener('stck:identity',()=>updateDiscoveries({detail:[]}));
   const nav = document.createElement("nav");
   nav.className = "sheet-navigation";
   nav.setAttribute("aria-label", "Changer de planche");

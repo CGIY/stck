@@ -25,7 +25,7 @@
   const reactionDurations = [0, 650, 1000, 800, 1350];
   const burstDuration = 850, clearDuration = 550;
   const messages = [isDailyPouch ? 'Touchez 4 fois pour ouvrir · sticker du jour offert' : 'Touchez 4 fois pour ouvrir · 3 jetons à la première touche', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
-  const nodes = Object.fromEntries(['torso','face','eyeWhite','eyeClipPath','eyeCrease','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
+  const nodes = Object.fromEntries(['torso','face','eyeWhite','eyeClipPath','eyelid','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
   const set = (id, attr, value) => nodes[id].setAttribute(attr, value);
 
   function state(value) {
@@ -104,17 +104,19 @@
     // Keep the eyeball circular through blinks and body squash; expression is
     // carried by gaze, brow, and mouth instead of flattening the eye.
     const d='M640 320 C722.843 320 790 387.157 790 470 C790 552.843 722.843 620 640 620 C557.157 620 490 552.843 490 470 C490 387.157 557.157 320 640 320Z';
-    set('eyeWhite','d',d);set('eyeClipPath','d',d);
+    set('eyeWhite','d',d);
+    // Clip at the inner edge of the 23-unit outline, leaving the ring intact.
+    set('eyeClipPath','d','M640 332 A138 138 0 1 1 640 608 A138 138 0 1 1 640 332Z');
     set('eyeWhite','stroke-width',23);
-    const crease=(open,closed)=>lerp(open,closed,c);
-    set('eyeCrease','opacity',lerp(.45-a*.3,.78,c));
-    set('eyeCrease','d','M415 '+crease(347,455)+' C480 '+crease(266,421)+' 699 '+crease(239,421)+' 850 '+crease(324,455));
+    const lidY=330+c*280;
+    set('eyelid','d',`M490 320H790V${lidY}Q640 ${lidY+30*c} 490 ${lidY}Z`);
+    set('eyelid','opacity',c>.005?1:0);
     const gazeY=clamp(gaze.y+p.gy,-22,22);
     set('gaze','transform','translate('+(640+gaze.x+p.gx)+' '+(465+gazeY)+') scale('+p.pupil+')');
     // A tapered, asymmetric fold follows the orbital arch. Curvature and weight
     // change together, so anger reads as muscle tension rather than a rigid V.
-    const by=260, pinch=a*86, weight=10+a*15, lift=p.gy*.05;
-    set('brow','opacity',.32+a*.68);
+    const by=260, pinch=a*86, weight=30+a*16, lift=p.gy*.05;
+    set('brow','opacity',.92+a*.08);
     set('brow','d',`M400 ${by+67}
       C442 ${by-5+lift} 536 ${by-30+pinch*.45} 628 ${by-6+pinch}
       C669 ${by+6+pinch} 725 ${by-34+pinch*.27} 788 ${by-23}
@@ -134,113 +136,20 @@
     $('groundShadow').style.transform='scale('+clamp(1-p.jump*.003,.5,1.2)+')';
   }
 
-  // Cartoon vapor is continuously advected on the GPU. The permanent clearing
-  // mask stays in screen coordinates, independently of the moving smoke.
-  const smokeArt=new Image();smokeArt.src='assets/pochette-smoke-v6.webp';
-  let smokeReady=false,flow=null;
-  function createFlow(image){
-    const surface=document.createElement('canvas');surface.width=surface.height=800;
-    const gl=surface.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false});
-    if(!gl)return null;
-    const compile=(type,source)=>{
-      const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);
-      if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(shader));
-      return shader;
-    };
-    const vertex=compile(gl.VERTEX_SHADER,`attribute vec2 position;varying vec2 uv;
-      void main(){uv=vec2(position.x*.5+.5,.5-position.y*.5);gl_Position=vec4(position,0.,1.);}`);
-    const fragment=compile(gl.FRAGMENT_SHADER,`precision mediump float;
-      varying vec2 uv;uniform sampler2D art;uniform float time;uniform vec4 wind;uniform float strength;
-      void main(){
-        vec2 p=uv-.5;
-        vec2 drift=vec2(sin(uv.y*11.+time*.71)+.45*sin(uv.x*17.-time*.43),
-          cos(uv.x*10.-time*.53)+.4*sin(uv.y*16.+time*.61));
-        vec2 curl=vec2(sin(uv.y*22.+drift.y*2.-time*.7),cos(uv.x*21.+drift.x*2.+time*.6));
-        vec2 flow=drift*.012+curl*.0045;
-        float influence=exp(-dot(uv-wind.xy,uv-wind.xy)*36.)*strength;
-        flow-=wind.zw*influence;
-        vec2 q=.5+p/(1.+.014*sin(time*.72))+flow;
-        vec4 color=texture2D(art,clamp(q,vec2(.001),vec2(.999)));
-        // Protect the full sticker bounds, including its drop shadow.
-        vec2 box=abs(uv-vec2(.5,.535))-vec2(.275,.265);
-        float core=1.-smoothstep(0.,.025,max(box.x,box.y));
-        float opacity=max(color.a,core);
-        color.rgb=mix(vec3(.75,.75,.70),color.rgb,color.a/max(opacity,.001));
-        color.a=opacity;
-        color.rgb*=1.+.014*sin(time*.6+uv.y*8.+drift.x);
-        gl_FragColor=color;
-      }`);
-    const program=gl.createProgram();gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
-    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
-    gl.useProgram(program);
-    const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-    const position=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
-    const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
-    const time=gl.getUniformLocation(program,'time'),wind=gl.getUniformLocation(program,'wind'),strength=gl.getUniformLocation(program,'strength');
-    surface.addEventListener('webglcontextlost',event=>{event.preventDefault();flow=null;canvas.dataset.renderer='painted-fallback';});
-    canvas.dataset.renderer='flow';
-    return {surface,draw(t){
-      gl.uniform1f(time,t);gl.uniform4f(wind,breeze.x/800,breeze.y/800,breeze.vx/800,breeze.vy/800);
-      gl.uniform1f(strength,clamp(1-(clock-breeze.at)/700));gl.drawArrays(gl.TRIANGLES,0,6);
-    }};
-  }
-  smokeArt.decode().then(()=>{
-    smokeReady=true;
-    try{flow=createFlow(smokeArt);}catch(error){console.warn('Smoke flow unavailable; painted fallback enabled.',error.message);}
-    if(!flow)canvas.dataset.renderer='painted-fallback';
-  }).catch(()=>{canvas.dataset.renderer='procedural-fallback';});
-
-  // Small dependency-free fallback when the painted asset is still loading.
-  const vapor=document.createElement('canvas');vapor.width=vapor.height=240;
-  const vaporCtx=vapor.getContext('2d');
-  const vaporPixels=vaporCtx.createImageData(240,240);
-  const noiseTile=new Float32Array(256*256);
-  let seed=92817;
-  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  for(let octave=0;octave<5;octave++){
-    const size=8<<octave, grid=Float32Array.from({length:size*size},random), amplitude=Math.pow(.49,octave);
-    for(let y=0;y<256;y++)for(let x=0;x<256;x++){
-      const gx=x/256*size,gy=y/256*size,ix=Math.floor(gx),iy=Math.floor(gy);
-      const fx=smooth(gx-ix),fy=smooth(gy-iy);
-      const v=lerp(lerp(grid[iy*size+ix],grid[iy*size+(ix+1)%size],fx),lerp(grid[((iy+1)%size)*size+ix],grid[((iy+1)%size)*size+(ix+1)%size],fx),fy);
-      noiseTile[y*256+x]+=v*amplitude/1.9;
-    }
-  }
-  function noise(x,y){
-    x=((x%256)+256)%256;y=((y%256)+256)%256;
-    const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
-    return lerp(lerp(noiseTile[iy*256+ix],noiseTile[iy*256+(ix+1)%256],fx),lerp(noiseTile[((iy+1)%256)*256+ix],noiseTile[((iy+1)%256)*256+(ix+1)%256],fx),fy);
-  }
-  let lastVapor=-1000;
-  function paintVapor(){
-    if(clock-lastVapor<45)return;
-    lastVapor=clock;
-    const t=motion.matches?0:clock*.00022, data=vaporPixels.data;
-    for(let y=0;y<240;y++)for(let x=0;x<240;x++){
-      const i=(y*240+x)*4, dx=(x-120)/120,dy=(y-123)/120;
-      const r=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
-      if(r>1.05){data[i+3]=0;continue;}
-      const wx=(noise(x*.62+t*9,y*.62-t*7)-.5)*90;
-      const wy=(noise(x*.62+71-t*6,y*.62+136)-.5)*90;
-      const n=noise(x*1.15+wx-t*21,y*1.15+wy+t*13);
-      const fine=noise(x*3.1+wx*2+t*7,y*3.1+wy*2-t*28);
-      const fold=Math.sin(y*.058+wy*.11+n*10+t)*.5+.5;
-      const edge=.9+.055*Math.sin(a*5+t*.6)+.035*Math.sin(a*9-t*.8)+(n-.5)*.2;
-      const outer=smooth(clamp((edge-r)/.14));
-      // The prize rectangle is fully occluded even in the darkest moving wisps.
-      const core=r<.79?1:0;
-      const alpha=Math.max(core,outer);
-      const shade=155+n*75+fold*33+fine*13;
-      data[i]=clamp(shade,0,255);
-      data[i+1]=clamp(shade+6-n*7,0,255);
-      data[i+2]=clamp(shade+1-n*10,0,255);
-      data[i+3]=Math.round(alpha*255);
-    }
-    vaporCtx.putImageData(vaporPixels,0,0);
+  // Thirty separately drifting paper-coloured puffs make up the fog.
+  // A stationary opaque core hides the prize until the clearing mask removes it.
+  const fog=Array.from({length:30},(_,i)=>{
+    const angle=i*2.399963, radius=80+Math.sqrt(i/29)*210;
+    return {x:400+Math.cos(angle)*radius,y:420+Math.sin(angle)*radius*.9,
+      radius:78+(i*37%70),phase:i*1.73,speed:.35+(i%7)*.065,
+      color:['235,229,207','207,219,198','175,198,184','225,224,201'][i%4]};
+  });
+  function puff(x,y,r,color,alpha=1){
+    const paint=ctx.createRadialGradient(x-r*.18,y-r*.2,r*.12,x,y,r);
+    paint.addColorStop(0,`rgba(${color},${alpha})`);
+    paint.addColorStop(.62,`rgba(${color},${alpha*.94})`);
+    paint.addColorStop(1,`rgba(${color},0)`);
+    ctx.fillStyle=paint;ctx.beginPath();ctx.ellipse(x,y,r,r*.84,0,0,Math.PI*2);ctx.fill();
   }
   function drawSmoke() {
     ctx.clearRect(0,0,800,800);
@@ -252,20 +161,19 @@
     ctx.save();ctx.globalAlpha=fade;
     ctx.translate(400,410-(phase==='clearing'?release*42:0));
     ctx.scale(expansion*(1+(phase==='clearing'?release*.14:0)),expansion);ctx.translate(-400,-410);
-    if(flow){flow.draw(motion.matches?0:clock*.001);ctx.drawImage(flow.surface,0,0);}
-    else if(smokeReady){
-      // Fully opaque underpainting covers the core even on older devices.
-      ctx.fillStyle='#bfc0b3';ctx.fillRect(180,216,440,424);
-      const sway=motion.matches?0:Math.sin(clock*.0006)*.012;
-      ctx.translate(400,410);ctx.rotate(sway);ctx.drawImage(smokeArt,-400,-410,800,800);
-    }else{paintVapor();ctx.drawImage(vapor,0,0,800,800);}
+    ctx.fillStyle='#d5ddc7';ctx.beginPath();ctx.roundRect(168,208,464,448,92);ctx.fill();
+    const t=motion.matches?0:clock*.001;
+    const wind=motion.matches?0:clamp(1-(clock-breeze.at)/700);
+    for(const p of fog){
+      const x=p.x+Math.sin(t*p.speed+p.phase)*24+breeze.vx*wind*.3;
+      const y=p.y+Math.cos(t*p.speed*.8+p.phase)*19;
+      puff(x,y,p.radius*(1+Math.sin(t*.6+p.phase)*.06),p.color,.96);
+    }
     ctx.restore();
     wake=wake.filter(p=>clock-p.at<850);
-    if(smokeReady&&!motion.matches)for(const p of wake){
+    if(!motion.matches)for(const p of wake){
       const age=(clock-p.at)/850;
-      ctx.save();ctx.translate(p.x+p.vx*age,p.y+p.vy*age-age*35);ctx.rotate(p.angle+age*.7);
-      ctx.globalAlpha=(1-age)*.27*fade;
-      const size=90+age*90;ctx.drawImage(smokeArt,-size*.55,-size*.3,size*1.1,size*.6);ctx.restore();
+      puff(p.x+p.vx*age,p.y+p.vy*age-age*45,36+age*42,'225,228,207',(1-age)*.24*fade);
     }
     ctx.globalCompositeOperation='destination-out';ctx.drawImage(mask,0,0);ctx.globalCompositeOperation='source-over';
     if(phase==='burst'&&!motion.matches){
@@ -280,6 +188,7 @@
   async function prepareSticker() {
     const token=++decodeToken;
     if (!window.STCK) throw new Error('Un instant, la bibliothèque se prépare.');
+    prizePaper?.dispose();prizePaper=null;
     $('prize').classList.remove('is-excess');
     selected=await window.STCK.requestDraw();
     const image=new Image();image.src=selected.src;image.alt='';assetError=false;
@@ -321,6 +230,11 @@
     $('revealedRarity').textContent = selected.kept === false ? 'Déjà 3 exemplaires · ce doublon disparaît' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 3` : selected.rare ? 'Édition rare · 1 sur 10' : 'Nouveau sticker';
     $('prize').classList.toggle('is-excess', selected.kept === false);
     $('revealInfo').hidden=false;
+    const prize=$('prize');
+    prize.tabIndex=0;prize.setAttribute('role','button');
+    prize.setAttribute('aria-label',selected.title+' : glisse depuis un coin pour décoller, ou maintiens Espace.');
+    prizePaper=window.StckPaper.attach(prize,prize.querySelector('img'),{rare:selected.rare});
+    $('again').textContent=isDailyPouch?'Ajouter à l’album →':'Pochette suivante · 3 jetons →';
     if(resetFocus)$('again').focus({preventScroll:true});
   }
   async function poke(event) {
@@ -434,6 +348,8 @@
     if(coverage>.82)finish();
   }
   function reset() {
+    prizePaper?.dispose();prizePaper=null;prizeGesture=null;
+    $('prize').removeAttribute('tabindex');$('prize').removeAttribute('role');
     step=0;pose={...base};gaze={x:0,y:0};pointer.active=false;stroke=null;coverage=0;wake=[];
     breeze.at=-5000;needsCoverage=false;
     maskCtx.clearRect(0,0,800,800);ctx.clearRect(0,0,800,800);
@@ -448,6 +364,31 @@
     nextScratch=clock+3800;nextBlink=clock+2200;state('ready');selected=null;
     if(!raf){lastTime=0;raf=requestAnimationFrame(tick);}
   }
+  let prizePaper=null, prizeGesture=null;
+  const prize=$('prize');
+  prize.addEventListener('dragstart',e=>e.preventDefault());
+  prize.addEventListener('pointerdown',e=>{
+    if(phase!=='revealed'||e.button>0||prizeGesture)return;
+    e.preventDefault();const r=prize.getBoundingClientRect();
+    prizeGesture={id:e.pointerId,x:e.clientX,y:e.clientY,cx:(e.clientX-r.left)/r.width,cy:(e.clientY-r.top)/r.height};
+    prize.setPointerCapture(e.pointerId);prizePaper?.lift(prizeGesture.cx,prizeGesture.cy,.12);
+  });
+  prize.addEventListener('pointermove',e=>{
+    const g=prizeGesture;if(!g||g.id!==e.pointerId)return;
+    const distance=Math.hypot(e.clientX-g.x,e.clientY-g.y)/prize.clientWidth;
+    prizePaper?.lift(g.cx,g.cy,.12+distance*.85);
+  });
+  function releasePrize(e){
+    if(prizeGesture?.id!==e.pointerId)return;
+    prizeGesture=null;prizePaper?.release();
+    if(prize.hasPointerCapture(e.pointerId))prize.releasePointerCapture(e.pointerId);
+  }
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])prize.addEventListener(type,releasePrize);
+  prize.addEventListener('keydown',e=>{
+    if(e.code==='Space'||e.code==='Enter'){e.preventDefault();prizePaper?.lift(1,0,.4);}
+  });
+  prize.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();prizePaper?.release();}});
+  prize.addEventListener('blur',()=>prizePaper?.release());
   button.addEventListener('click',poke);
   document.addEventListener('pointermove',e=>{
     const r=scene.getBoundingClientRect();
@@ -466,7 +407,7 @@
   function endStroke(e){if(stroke?.id===e.pointerId){stroke=null;needsCoverage=true;}}
   canvas.addEventListener('pointerup',endStroke);canvas.addEventListener('pointercancel',endStroke);canvas.addEventListener('lostpointercapture',endStroke);
   $('clearKeyboard').addEventListener('click',finish);
-  $('again').addEventListener('click',()=>{reset();button.focus({preventScroll:true});});
+  $('again').addEventListener('click',()=>{if(isDailyPouch){location.href='index.html';return;}reset();button.focus({preventScroll:true});});
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){cancelAnimationFrame(raf);raf=0;stroke=null;}
     else if(!raf&&phase!=='revealed'){lastTime=0;raf=requestAnimationFrame(tick);}

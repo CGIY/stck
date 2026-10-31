@@ -86,12 +86,12 @@ dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button>
 <form id="login-form"><label>Ton code personnel<input name="code" type="password" autocomplete="current-password" autocapitalize="characters" spellcheck="false" placeholder="STCK-A-…" required></label><button>Entrer</button></form>
 <p class="login-note">À garder pour te connecter sur un autre appareil.</p>
 <button id="demo" class="secondary">Explorer l’aperçu</button>
-<button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>
+ </section>
 <section data-view="setup" hidden><p>Votre espace est en cours de préparation. Recharge la page dans un instant.</p></section>
 <section data-view="account" hidden><p id="space-description"></p>
 <h2>Notifications</h2><p id="push-info"></p><p>Le rappel quotidien t’indique qu’un sticker gratuit est prêt. Chaque téléphone s’active séparément.</p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
 <form id="preferences-form"><label class="check"><input name="daily" type="checkbox">Rappel quotidien</label><label>À quelle heure ?<input name="time" type="time" value="18:30" required></label><label class="check"><input name="news" type="checkbox">Les nouveautés STCK</label><p id="timezone-label"></p><button>Enregistrer mes préférences</button></form>
-<h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button><button class="motion-toggle secondary" type="button">Activer le mouvement du téléphone</button><p class="motion-help">La scène se déplace doucement quand tu inclines l’appareil.</p></section>`;
+<h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button></section>`;
 document.body.append(dialog);
 const $ = (selector) => dialog.querySelector(selector);
 function view(name) {
@@ -127,8 +127,7 @@ function handleError(error) {
   );
 }
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-let orientationEnabled = false,
-  orientationFrame = 0,
+let orientationFrame = 0,
   tiltX = 0,
   tiltY = 0;
 function setTilt(x, y) {
@@ -150,46 +149,10 @@ function onOrientation(event) {
     angle === 90 ? -event.gamma : angle === 270 ? event.gamma : event.beta;
   setTilt(horizontal / 35, vertical / 45);
 }
-function motionLabel() {
-  dialog.querySelectorAll(".motion-toggle").forEach((control) => {
-    control.textContent = orientationEnabled
-      ? "Désactiver le mouvement du téléphone"
-      : "Activer le mouvement du téléphone";
-    control.setAttribute("aria-pressed", String(orientationEnabled));
-    control.disabled = reduceMotion.matches;
+if (typeof DeviceOrientationEvent !== "undefined")
+  window.addEventListener("deviceorientation", onOrientation, {
+    passive: true,
   });
-}
-dialog.querySelectorAll(".motion-toggle").forEach((control) =>
-  control.addEventListener("click", async () => {
-    if (orientationEnabled) {
-      window.removeEventListener("deviceorientation", onOrientation);
-      orientationEnabled = false;
-      setTilt(0, 0);
-      localStorage.removeItem("stck:phone-motion");
-      motionLabel();
-      return say("Mouvement du téléphone désactivé.");
-    }
-    try {
-      if (typeof DeviceOrientationEvent === "undefined")
-        throw Error("Capteur indisponible");
-      if (typeof DeviceOrientationEvent.requestPermission === "function") {
-        const permission = await DeviceOrientationEvent.requestPermission();
-        if (permission !== "granted") throw Error("Permission refusée");
-      }
-      window.addEventListener("deviceorientation", onOrientation, {
-        passive: true,
-      });
-      orientationEnabled = true;
-      localStorage.setItem("stck:phone-motion", "true");
-      motionLabel();
-      say("Incline doucement ton téléphone pour voir la scène bouger.");
-    } catch {
-      say("Le capteur n’est pas disponible. L’animation douce reste active.");
-    }
-  }),
-);
-reduceMotion.addEventListener?.("change", motionLabel);
-motionLabel();
 async function checked(query) {
   const { data, error } = await query;
   if (error) throw error;

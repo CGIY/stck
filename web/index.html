@@ -6,10 +6,11 @@
   <meta name="theme-color" content="#eeeae1">
   <title>STCK · La bibliothèque</title>
   <link rel="stylesheet" href="sticker-peel.css?v=rare-outlines-1">
-  <link rel="stylesheet" href="sheet-stack.css?v=game-loop-6">
-  <script src="sheet-stack.js?v=game-loop-2" defer></script>
-  <script src="sticker-peel.js?v=rare-outlines-1" defer></script>
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content="STCK, vos planches de stickers à partager à deux."><link rel="stylesheet" href="account.css"><script src="config.js"></script><script src="app.js?v=daily-pouch-status-2" type="module"></script><link rel="stylesheet" href="iphone.css?v=iphone-6"><link rel="stylesheet" href="patchwork.css?v=daily-pouch-cta-1">
+  <link rel="stylesheet" href="sheet-stack.css?v=review-20261031-2">
+  <script src="sheet-stack.js?v=review-20261031-2" defer></script>
+  <script src="peel-paper.js?v=1" defer></script>
+  <script src="sticker-peel.js?v=review-20261031-2" defer></script>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content="STCK, vos planches de stickers à partager à deux."><link rel="stylesheet" href="account.css"><script src="config.js"></script><script src="app.js?v=review-20261031-2" type="module"></script><link rel="stylesheet" href="iphone.css?v=review-20261031-2"><link rel="stylesheet" href="patchwork.css?v=review-20261031-2">
 </head>
 <body data-collection-ready="false">
   <svg class="color-definitions" aria-hidden="true" width="0" height="0" focusable="false">
@@ -33,7 +34,7 @@
       </g>
       <path id="logoFold" fill="url(#logoPaper)" stroke="#fffdf7" stroke-width="1" d=""/>
     </svg>
-
+    <div class="header-wallet" title="Jetons pour ouvrir des pochettes bonus"><strong id="wallet-balance" aria-live="polite">0 jetons</strong></div>
   </header>
 
   <main class="prototype">
@@ -41,15 +42,12 @@
 
       <div class="peel-stage" id="peelStage">
         <section class="board-area" aria-label="Votre collage">
-          <a class="pouch-link" href="pochette.html?pouch=10">Ouvrir une pochette bonus · 3 jetons <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 8h16M9 14h6"/></svg></a>
+          <a class="pouch-link" href="pochette.html?pouch=10">Ouvrir une pochette bonus <span class="pouch-cost">3 jetons</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 8h16M9 14h6"/></svg></a>
         <div class="drop-target" id="dropTarget" role="group" aria-label="Collage partagé, placement libre"></div>
-        <div class="token-strip" aria-label="Récompenses"><span id="wallet-balance">0 jeton</span><a class="daily-pouch-link" href="pochette.html?daily=1&amp;pouch=10" aria-label="Réclamer le sticker gratuit du jour">Réclamer le sticker du jour</a></div>
+        <div class="token-strip" aria-label="Récompenses"><a class="daily-pouch-link" href="pochette.html?daily=1&amp;pouch=10" aria-label="Réclamer le sticker gratuit du jour">Réclamer le sticker du jour</a></div>
         </section>
 
         <section class="collection" aria-label="Banque de stickers">
-          <header class="season-heading" aria-label="Saison 1, collection actuelle">
-            <span>Saison</span><strong>1</strong><i aria-hidden="true"></i>
-          </header>
           <div class="collection-tabs" role="tablist" aria-label="Collections">
             <button class="collection-tab is-active" id="collection-tab-1" type="button" role="tab" aria-selected="true" aria-controls="collection-window" data-collection="1" data-title="Douceurs" aria-label="C1, Douceurs">C1</button>
             <button class="collection-tab" id="collection-tab-2" type="button" role="tab" aria-selected="false" aria-controls="collection-window" data-collection="2" data-title="Saveurs" aria-label="C2, Saveurs">C2</button>
