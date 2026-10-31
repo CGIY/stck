@@ -4,223 +4,869 @@
     "src": "assets/sticker-rubber-c1-01-v4.webp",
     "rare": false,
     "mineral": false,
-    "id": "1-01"
+    "id": "1-01",
+    "rect": [
+      0.01026,
+      0.005584,
+      0.977143,
+      0.977143
+    ],
+    "collection": "5",
+    "active": true
   },
   {
-    "title": "Massage de la tête",
-    "src": "assets/sticker-rubber-c1-02-v4.webp",
+    "id": "5-01",
+    "title": "Bisou avec la langue",
     "rare": false,
+    "collection": "5",
     "mineral": false,
-    "id": "1-02"
+    "active": true,
+    "src": "assets/sticker-c5-01-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
   },
   {
-    "title": "Massage des épaules",
-    "src": "assets/sticker-rubber-c1-03-v4.webp",
+    "id": "5-02",
+    "title": "Câlin (accolade)",
     "rare": false,
+    "collection": "5",
     "mineral": false,
-    "id": "1-03"
-  },
-  {
-    "title": "Massage des cuisses",
-    "src": "assets/sticker-rubber-c1-04-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "1-04"
+    "active": true,
+    "src": "assets/sticker-c5-02-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
   },
   {
     "title": "Mot doux à cacher",
     "src": "assets/sticker-rubber-c1-05-v4.webp",
     "rare": false,
     "mineral": false,
-    "id": "1-05"
+    "id": "1-05",
+    "rect": [
+      -0.033851,
+      0.014064,
+      1.00142,
+      1.00142
+    ],
+    "collection": "5",
+    "active": true
+  },
+  {
+    "id": "5-03",
+    "title": "Message d’amour sincère",
+    "rare": true,
+    "collection": "5",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c5-03-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Massage de la tête",
+    "src": "assets/sticker-rubber-c1-02-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "1-02",
+    "rect": [
+      0.004211,
+      -0.002895,
+      0.99,
+      0.99
+    ],
+    "collection": "1",
+    "active": true
+  },
+  {
+    "title": "Massage des épaules",
+    "src": "assets/sticker-rubber-c1-03-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "1-03",
+    "rect": [
+      0.033704,
+      0.035926,
+      0.928889,
+      0.928889
+    ],
+    "collection": "1",
+    "active": true
+  },
+  {
+    "id": "1-09",
+    "title": "Massage des mains",
+    "rare": false,
+    "collection": "1",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c1-09-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "1-10",
+    "title": "Massage des oreilles",
+    "rare": false,
+    "collection": "1",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c1-10-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Massage des cuisses",
+    "src": "assets/sticker-rubber-c1-04-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "1-04",
+    "rect": [
+      0.014383,
+      0.01783,
+      0.960511,
+      0.960511
+    ],
+    "collection": "1",
+    "active": true
   },
   {
     "title": "Soin complet du visage",
     "src": "assets/sticker-rubber-c1-06-v4.webp",
     "rare": false,
     "mineral": false,
-    "id": "1-06"
-  },
-  {
-    "title": "Café en ville",
-    "src": "assets/sticker-rubber-c2-01-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-01"
-  },
-  {
-    "title": "Fast-food",
-    "src": "assets/sticker-rubber-c2-02-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-02"
-  },
-  {
-    "title": "Gâteau, cookie et crêpe",
-    "src": "assets/sticker-rubber-c2-03-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-03"
-  },
-  {
-    "title": "Chocolat et canapé",
-    "src": "assets/sticker-rubber-c2-04-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-04"
-  },
-  {
-    "title": "Petit-déjeuner",
-    "src": "assets/sticker-rubber-c2-05-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-05"
-  },
-  {
-    "title": "Apéro sur canapé",
-    "src": "assets/sticker-rubber-c2-06-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "2-06"
-  },
-  {
-    "title": "Cadeau à 5 euros",
-    "src": "assets/sticker-rubber-c3-01-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-01"
-  },
-  {
-    "title": "Cadeau à 10 euros",
-    "src": "assets/sticker-rubber-c3-02-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-02"
-  },
-  {
-    "title": "Cadeau surprise en ville",
-    "src": "assets/sticker-rubber-c3-03-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-03"
-  },
-  {
-    "title": "Achat d’un jeu de société",
-    "src": "assets/sticker-rubber-c3-04-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-04"
-  },
-  {
-    "title": "Vêtement de seconde main",
-    "src": "assets/sticker-rubber-c3-05-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-05"
-  },
-  {
-    "title": "Achat d'un livre",
-    "src": "assets/sticker-rubber-c3-06-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "3-06"
-  },
-  {
-    "title": "Éjaculation",
-    "src": "assets/sticker-rubber-c4-01-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-01"
-  },
-  {
-    "title": "Léchage de chatte",
-    "src": "assets/sticker-rubber-c4-02-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-02"
-  },
-  {
-    "title": "Exhib en ligne",
-    "src": "assets/sticker-rubber-c4-03-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-03"
-  },
-  {
-    "title": "Plug anal",
-    "src": "assets/sticker-rubber-c4-04-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-04"
-  },
-  {
-    "title": "Faciale",
-    "src": "assets/sticker-rubber-c4-05-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-05"
-  },
-  {
-    "title": "Séance photo",
-    "src": "assets/sticker-rubber-c4-06-v4.webp",
-    "rare": false,
-    "mineral": false,
-    "id": "4-06"
+    "id": "1-06",
+    "rect": [
+      0.039095,
+      0.042367,
+      0.911632,
+      0.911632
+    ],
+    "collection": "1",
+    "active": true
   },
   {
     "title": "Massage total",
     "src": "assets/sticker-rubber-c1-07-v4.webp",
     "rare": true,
     "mineral": false,
-    "id": "1-07"
+    "id": "1-07",
+    "rect": [
+      0.037432,
+      0.088402,
+      0.916059,
+      0.837161
+    ],
+    "collection": "1",
+    "active": true
   },
   {
-    "title": "Soirée cinéma à thème",
-    "src": "assets/sticker-rubber-c1-08-v4.webp",
+    "title": "Soirée massage et soin",
+    "src": "assets/sticker-c1-08-v1.webp",
     "rare": true,
     "mineral": false,
-    "id": "1-08"
+    "id": "1-08",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "1",
+    "active": true
+  },
+  {
+    "title": "Café en ville",
+    "src": "assets/sticker-rubber-c2-01-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-01",
+    "rect": [
+      -0.042751,
+      0.002052,
+      0.985677,
+      0.985677
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "title": "Burger",
+    "src": "assets/sticker-c2-02-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-02",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "id": "2-09",
+    "title": "Pizza",
+    "rare": false,
+    "collection": "2",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c2-09-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "2-10",
+    "title": "Sushi",
+    "rare": false,
+    "collection": "2",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c2-10-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "2-11",
+    "title": "Kébab",
+    "rare": false,
+    "collection": "2",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c2-11-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Faire un gâteau",
+    "src": "assets/sticker-c2-03-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-03",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "id": "2-12",
+    "title": "Faire des cookies",
+    "rare": false,
+    "collection": "2",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c2-12-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "2-13",
+    "title": "Faire des crêpes",
+    "rare": false,
+    "collection": "2",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c2-13-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Chocolat et canapé",
+    "src": "assets/sticker-rubber-c2-04-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-04",
+    "rect": [
+      0.04273,
+      0.064903,
+      0.911632,
+      0.911632
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "title": "Petit-déjeuner",
+    "src": "assets/sticker-rubber-c2-05-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-05",
+    "rect": [
+      0.013924,
+      0.164873,
+      0.972152,
+      0.648101
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "title": "Apéro sur canapé",
+    "src": "assets/sticker-rubber-c2-06-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "2-06",
+    "rect": [
+      0.040496,
+      0.04342,
+      0.916816,
+      0.916816
+    ],
+    "collection": "2",
+    "active": true
   },
   {
     "title": "Restaurant",
     "src": "assets/sticker-rubber-c2-07-v4.webp",
     "rare": true,
     "mineral": false,
-    "id": "2-07"
+    "id": "2-07",
+    "rect": [
+      0.009983,
+      0.025283,
+      0.983958,
+      0.983958
+    ],
+    "collection": "2",
+    "active": true
   },
   {
     "title": "Repas complet à la maison",
     "src": "assets/sticker-rubber-c2-08-v4.webp",
     "rare": true,
     "mineral": false,
-    "id": "2-08"
+    "id": "2-08",
+    "rect": [
+      0.013291,
+      0.194937,
+      0.972152,
+      0.648101
+    ],
+    "collection": "2",
+    "active": true
+  },
+  {
+    "title": "Petit cadeau en ville",
+    "src": "assets/sticker-c3-01-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-01",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "3",
+    "active": true
+  },
+  {
+    "title": "Cadeau moyen en ville",
+    "src": "assets/sticker-c3-02-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-02",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "3",
+    "active": true
+  },
+  {
+    "title": "Achat d’un jeu de société",
+    "src": "assets/sticker-rubber-c3-04-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-04",
+    "rect": [
+      -0.09441,
+      -0.103261,
+      1.168323,
+      1.168323
+    ],
+    "collection": "3",
+    "active": true
+  },
+  {
+    "title": "Achat d’un vêtement de seconde main",
+    "src": "assets/sticker-rubber-c3-05-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-05",
+    "rect": [
+      0.024286,
+      0.02542,
+      0.948403,
+      0.948403
+    ],
+    "collection": "3",
+    "active": true
+  },
+  {
+    "title": "Achat d’un livre",
+    "src": "assets/sticker-rubber-c3-06-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-06",
+    "rect": [
+      0.038264,
+      0.054401,
+      0.919804,
+      0.919804
+    ],
+    "collection": "3",
+    "active": true
   },
   {
     "title": "Cadeau à 50 euros",
     "src": "assets/sticker-rubber-c3-07-v4.webp",
     "rare": true,
     "mineral": false,
-    "id": "3-07"
+    "id": "3-07",
+    "rect": [
+      0.033902,
+      0.021829,
+      0.917561,
+      0.917561
+    ],
+    "collection": "3",
+    "active": true
   },
   {
     "title": "Tatouage",
     "src": "assets/sticker-rubber-c3-08-v4.webp",
     "rare": true,
     "mineral": false,
-    "id": "3-08"
+    "id": "3-08",
+    "rect": [
+      -0.021137,
+      -0.015542,
+      1.002309,
+      1.002309
+    ],
+    "collection": "3",
+    "active": true
   },
   {
-    "title": "Golden Shower",
-    "src": "assets/sticker-rubber-c4-07-v4.webp",
-    "rare": true,
+    "id": "6-01",
+    "title": "Envoi d’une nude",
+    "rare": false,
+    "collection": "6",
     "mineral": false,
-    "id": "4-07"
+    "active": true,
+    "src": "assets/sticker-c6-01-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Masturbation avec éjaculation",
+    "src": "assets/sticker-c4-01-v2.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-01",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "6",
+    "active": true
+  },
+  {
+    "title": "Léchage de chatte",
+    "src": "assets/sticker-c4-02-v2.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-02",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "6",
+    "active": true
+  },
+  {
+    "id": "6-02",
+    "title": "Séance photo nues",
+    "rare": false,
+    "collection": "6",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-rubber-c4-06-v4.webp",
+    "rect": [
+      0.046383,
+      0.052532,
+      0.907235,
+      0.907235
+    ]
+  },
+  {
+    "id": "6-03",
+    "title": "Fellation",
+    "rare": false,
+    "collection": "6",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c6-03-v2.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Faciale",
+    "src": "assets/sticker-c4-05-v2.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-05",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "6",
+    "active": true
+  },
+  {
+    "id": "6-05",
+    "title": "Massage Nuru",
+    "rare": false,
+    "collection": "6",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c6-05-v2.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "6-04",
+    "title": "Plug anal",
+    "rare": true,
+    "collection": "6",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c6-04-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "6-06",
+    "title": "Lovense",
+    "rare": true,
+    "collection": "6",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-rubber-c4-08-v4.webp",
+    "rect": [
+      0.02592,
+      0.030059,
+      0.943645,
+      0.943645
+    ]
+  },
+  {
+    "title": "Exhib en ligne Reddit",
+    "src": "assets/sticker-c4-03-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-03",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "4",
+    "active": true
+  },
+  {
+    "id": "6-07",
+    "title": "Exhib en ligne WebCam",
+    "rare": false,
+    "collection": "4",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c6-07-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Reproduire un film porno 1:1",
+    "src": "assets/sticker-c4-04-v1.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-04",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "4",
+    "active": true
+  },
+  {
+    "title": "Séance photo",
+    "src": "assets/sticker-rubber-c4-06-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-06",
+    "rect": [
+      0.046383,
+      0.052532,
+      0.907235,
+      0.907235
+    ],
+    "collection": "4",
+    "active": false
   },
   {
     "title": "Lovense",
     "src": "assets/sticker-rubber-c4-08-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "4-08",
+    "rect": [
+      0.02592,
+      0.030059,
+      0.943645,
+      0.943645
+    ],
+    "collection": "4",
+    "active": false
+  },
+  {
+    "title": "Golden Shower",
+    "src": "assets/sticker-c4-07-v1.webp",
     "rare": true,
     "mineral": false,
-    "id": "4-08"
+    "id": "4-07",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "collection": "4",
+    "active": true
+  },
+  {
+    "id": "6-08",
+    "title": "Double pénétration",
+    "rare": true,
+    "collection": "4",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c6-08-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "7-01",
+    "title": "Soutien-gorge",
+    "rare": false,
+    "collection": "7",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c7-01-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "7-02",
+    "title": "Culotte",
+    "rare": false,
+    "collection": "7",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c7-02-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "7-03",
+    "title": "Body",
+    "rare": false,
+    "collection": "7",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c7-03-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "7-04",
+    "title": "Ensemble",
+    "rare": true,
+    "collection": "7",
+    "mineral": false,
+    "active": true,
+    "src": "assets/sticker-c7-04-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "8-01",
+    "title": "Chaussettes",
+    "rare": false,
+    "collection": "8",
+    "active": true,
+    "mineral": false,
+    "src": "assets/sticker-c8-01-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "8-02",
+    "title": "T-shirt",
+    "rare": false,
+    "collection": "8",
+    "active": true,
+    "mineral": false,
+    "src": "assets/sticker-c8-02-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "8-03",
+    "title": "Pantalon / jupe",
+    "rare": false,
+    "collection": "8",
+    "active": true,
+    "mineral": false,
+    "src": "assets/sticker-c8-03-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "8-04",
+    "title": "Robe",
+    "rare": true,
+    "collection": "8",
+    "active": true,
+    "mineral": false,
+    "src": "assets/sticker-c8-04-v1.webp",
+    "rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "title": "Cadeau surprise en ville",
+    "src": "assets/sticker-rubber-c3-03-v4.webp",
+    "rare": false,
+    "mineral": false,
+    "id": "3-03",
+    "rect": [
+      0.040511,
+      0.04708,
+      0.915328,
+      0.915328
+    ],
+    "collection": "3",
+    "active": false
   }
 ]

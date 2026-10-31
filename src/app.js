@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import catalog from "./catalog.json";
+import collections from "./collections.json";
 const config = window.STCK_CONFIG || {};
 const client =
   config.supabaseUrl && config.supabaseKey
@@ -36,6 +37,31 @@ function say(text) {
   document
     .querySelector(".account-feedback")
     ?.replaceChildren(document.createTextNode(text));
+}
+function publishCollectionRewards(rows){
+  document.dispatchEvent(new CustomEvent('stck:rewards',{detail:rows}));
+}
+function previewCollectionRewards(){
+  let seen=[],rewards=[];
+  try{seen=JSON.parse(sessionStorage.getItem('stck:preview-seen')||'[]');rewards=JSON.parse(sessionStorage.getItem('stck:preview-rewards')||'[]');}catch{}
+  const history=new Set([...seen,...inventory.keys()]);
+  for(const group of collections){
+    const items=catalog.filter(item=>item.active!==false&&item.collection===group.id);
+    if(items.length&&items.every(item=>history.has(item.id))&&!rewards.some(row=>row.collection_key===group.key))
+      rewards.push({collection_key:group.key,earned_at:new Date().toISOString()});
+  }
+  sessionStorage.setItem('stck:preview-seen',JSON.stringify([...history]));
+  sessionStorage.setItem('stck:preview-rewards',JSON.stringify(rewards));
+  publishCollectionRewards(rewards);
+}
+async function refreshCollectionRewards(){
+  if(previewMode||!client){previewCollectionRewards();return;}
+  if(!user)return;
+  const uid=user.id,version=identityVersion;
+  const {data,error}=await client.rpc('collection_rewards');
+  // A cached client can be loaded while the catalogue migration is publishing.
+  if(error){if(['PGRST202','42883'].includes(error.code))return;throw error;}
+  if(user?.id===uid&&version===identityVersion)publishCollectionRewards(data||[]);
 }
 function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
@@ -234,7 +260,7 @@ function cache(rows) {
 function setDiscoveries(ids = []) {
   inventory = new Map();
   ids.forEach((id) =>
-    inventory.set(id, Math.min(3, (inventory.get(id) || 0) + 1)),
+    inventory.set(id, Math.min(2, (inventory.get(id) || 0) + 1)),
   );
   inventoryCopyNos = new Map(
     [...inventory].map(([id, count]) => [id, Array.from({ length: count }, (_, i) => i + 1)]),
@@ -278,10 +304,11 @@ function startPreview() {
   } catch {}
   setDiscoveries(
     catalog.flatMap((item) =>
-      Array(Math.min(3, counts[item.id] || 0)).fill(item.id),
+      Array(Math.min(2, counts[item.id] || 0)).fill(item.id),
     ),
   );
   restoreBoard(readLocal());
+  previewCollectionRewards();
 }
 function clearIdentity() {
   identityVersion++;
@@ -290,6 +317,7 @@ function clearIdentity() {
   archivedChallenges = [];
   inventoryCopyNos = new Map();
   renderWallet();
+  publishCollectionRewards([]);
   document.dispatchEvent(new Event("stck:identity"));
   setDiscoveries([]);
   restoreBoard([]);
@@ -301,17 +329,23 @@ const bridge = {
   ready: false,
   requestDraw: async () => {
     if (!client || previewMode) {
-      const values = crypto.getRandomValues(new Uint32Array(2));
+      const values = crypto.getRandomValues(new Uint32Array(3));
       const rare = values[0] / 4294967296 < 0.1;
-      const pool = catalog.filter((item) => item.rare === rare);
-      const item = pool[Math.floor((values[1] / 4294967296) * pool.length)];
+      const special = values[1] / 4294967296 < 0.2;
+      const specialIds = new Set(collections.filter(group=>group.special).map(group=>group.id));
+      const pool = catalog.filter((item) => item.active !== false && item.rare === rare && specialIds.has(item.collection) === special);
+      const item = pool[Math.floor((values[2] / 4294967296) * pool.length)];
       const count = inventory.get(item.id) || 0;
       lastDraw = {
         sticker_id: item.id,
-        kept: count < 3,
-        quantity: Math.min(3, count + 1),
+        kept: count < 2,
+        quantity: Math.min(2, count + 1),
+        duplicate_tokens: count >= 2 ? 1 : 0,
       };
       inventory.set(item.id, lastDraw.quantity);
+      if(lastDraw.duplicate_tokens){sharedTokens++;renderWallet();}
+      let seen=[];try{seen=JSON.parse(sessionStorage.getItem('stck:preview-seen')||'[]');}catch{}
+      sessionStorage.setItem('stck:preview-seen',JSON.stringify([...new Set([...seen,item.id])]));
       sessionStorage.setItem(
         "stck:preview-stock",
         JSON.stringify(Object.fromEntries(inventory)),
@@ -354,6 +388,7 @@ const bridge = {
   drawRevealed: () => {
     if (!client || previewMode) {
       setDiscoveries([...inventory].flatMap(([id, count]) => Array(count).fill(id)));
+      previewCollectionRewards();
       say("Aperçu · sticker ajouté à cette collection locale.");
       return;
     }
@@ -363,7 +398,7 @@ const bridge = {
         ? lastDraw.quantity > 1
           ? `${lastDraw.quantity} exemplaires dans ta collection.`
           : "Nouveau sticker dans ta collection."
-        : "Déjà 3 exemplaires : ce doublon disparaît.",
+        : "Déjà 2 exemplaires : doublon transformé en 1 jeton.",
     );
     refreshDiscoveries().catch(handleError);
   },
@@ -484,6 +519,7 @@ async function refreshWalletAndArchive() {
   sharedTokens=wallet.tokens||0;
   archivedChallenges=archive;
   renderWallet();
+  await refreshCollectionRewards();
 }
 async function refreshDiscoveries() {
   if (!user) return;
@@ -510,6 +546,7 @@ async function refreshDiscoveries() {
   refreshStock();
   $("#space-description").textContent =
     `${draws.length} stickers dans ta collection privée · table partagée`;
+  await refreshCollectionRewards();
 }
 document.addEventListener("stck:placement", (event) => {
   const row = event.detail;

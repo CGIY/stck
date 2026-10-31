@@ -567,7 +567,7 @@
     button.style.setProperty('--art-top', `${artY * 100}%`);
     button.style.setProperty('--art-width', `${artW * 100}%`);
     button.style.setProperty('--art-height', `${artH * 100}%`);
-    state.id = image.getAttribute('src').match(/c(\d)-(\d\d)/).slice(1).join('-');
+    state.id = button.dataset.stickerId || image.getAttribute('src').match(/c(\d+)-(\d\d)/).slice(1).join('-');
     button.dataset.stickerId = state.id;
     states.push(state);
 

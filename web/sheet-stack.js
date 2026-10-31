@@ -22,13 +22,15 @@
     const sheet = document.createElement("section");
     sheet.className = "sticker-sheet";
     sheet.dataset.collection = id;
+    sheet.style.setProperty('--tone',tab.dataset.tone||'#aeb8a8');
+    sheet.dataset.title = tab.dataset.title;
     sheet.setAttribute("aria-label", tab.dataset.title);
     const heading = document.createElement("header");
     heading.className = "sheet-heading";
     const title = document.createElement("h3");
     title.textContent = tab.dataset.title;
     const number = document.createElement("span");
-    number.textContent = `0${i + 1} / 04`;
+    number.textContent = `${String(i + 1).padStart(2,'0')} / ${String(tabs.length).padStart(2,'0')}`;
     const meta = document.createElement('div');meta.className='sheet-meta';
     const season = document.createElement('span');season.className='season-tag';season.textContent='Saison 1';
     meta.append(season,number);heading.append(title,meta);
@@ -46,16 +48,34 @@
     tab.append(dot);
   });
   content.append(stack);
+  let completedCollections=new Set();
   function updateDiscoveries(event){
     const discovered=new Set(event.detail || []);
-    sheets.forEach(sheet=>{
+    [...sheets,...document.querySelectorAll('.special-sheet')].forEach(sheet=>{
       const known=[...sheet.querySelectorAll('.peel-sticker')].some(button=>discovered.has(button.dataset.stickerId));
-      sheet.classList.toggle('is-undiscovered',!known);
-      sheet.setAttribute('aria-label',known?tabs[sheets.indexOf(sheet)].dataset.title:'Planche à découvrir');
+      sheet.classList.toggle('is-undiscovered',!known&&!completedCollections.has(sheet.dataset.collection));
+      sheet.setAttribute('aria-label',known||completedCollections.has(sheet.dataset.collection)?sheet.dataset.title:'Planche à découvrir');
     });
   }
+  const rewardCollectionIds={amour:'5',douceurs:'1',saveurs:'2',plaisirs:'3',intimite:'6','porn-love':'4','rouge-gorge':'7',monoprix:'8'};
+  document.addEventListener('stck:rewards',event=>{
+    completedCollections=new Set((event.detail||[]).map(row=>rewardCollectionIds[row.collection_key]));
+    for(const sheet of [...sheets,...document.querySelectorAll('.special-sheet')]){
+      const complete=completedCollections.has(sheet.dataset.collection);
+      sheet.classList.toggle('is-completed',complete);
+      let emblem=sheet.querySelector('.completion-emblem');
+      if(complete&&!emblem){
+        emblem=document.createElement('span');emblem.className='completion-emblem';emblem.setAttribute('role','img');
+        emblem.setAttribute('aria-label',sheet.dataset.title+' : planche complétée, récompense permanente');
+        emblem.innerHTML='<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M11 27L7 43L18 38L22 44L27 27" fill="#a6b39a" stroke="#566c50" stroke-width="2"/><path d="M20 2L26 6L33 6L35 14L39 20L35 26L33 33L26 34L20 38L14 34L7 33L5 26L1 20L5 14L7 6L14 6Z" fill="#e1c07b" stroke="#76633e" stroke-width="2"/><path d="M11 20L17 26L29 13" fill="none" stroke="#647252" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        sheet.querySelector('.sheet-heading').append(emblem);
+      }
+      if(emblem)emblem.hidden=!complete;
+      if(complete){sheet.classList.remove('is-undiscovered');sheet.setAttribute('aria-label',sheet.dataset.title+' · complétée');}
+    }
+  });
   document.addEventListener('stck:discoveries',updateDiscoveries);
-  document.addEventListener('stck:identity',()=>updateDiscoveries({detail:[]}));
+  document.addEventListener('stck:identity',()=>{completedCollections.clear();updateDiscoveries({detail:[]});});
   const nav = document.createElement("nav");
   nav.className = "sheet-navigation";
   nav.setAttribute("aria-label", "Changer de planche");
@@ -83,12 +103,20 @@
     sheets.forEach((sheet, i) => {
       const depth = (i - current + sheets.length) % sheets.length;
       sheet.style.setProperty("--depth", depth);
-      sheet.style.zIndex = String(4 - depth);
+      sheet.style.zIndex = String(sheets.length - depth);
       sheet.inert = depth !== 0;
       sheet.setAttribute("aria-hidden", String(depth !== 0));
       sheet.classList.toggle("is-front", depth === 0);
     });
-    announcement.textContent = `${tabs[current].dataset.title}, planche ${current + 1} sur 4`;
+    // Measure layout dimensions, independent of the sheet's animated rotation.
+    // The largest grid sets one shared paper size for every normal sheet.
+    const required=Math.max(...sheets.map(sheet=>{
+      const grid=sheet.querySelector('.sticker-grid'),heading=sheet.querySelector('.sheet-heading');
+      const style=getComputedStyle(sheet),hs=getComputedStyle(heading);
+      return grid.offsetHeight+heading.offsetHeight+parseFloat(hs.marginBottom)+parseFloat(style.paddingTop)+parseFloat(style.paddingBottom)+4;
+    }));
+    stack.style.height=Math.ceil(required)+'px';
+    announcement.textContent = `${tabs[current].dataset.title}, planche ${current + 1} sur ${sheets.length}`;
   }
   function lifted() {
     return !!document.querySelector('.peel-sticker[data-lifted="true"]');
@@ -98,7 +126,7 @@
     turning = true;
     panel.classList.add("is-turning");
     const old = sheets[current],
-      direction = (index - current + 4) % 4 === 3 ? 1 : -1;
+      direction = (index - current + tabs.length) % tabs.length === tabs.length - 1 ? 1 : -1;
     const from = old.style.transform || "translateX(0) rotate(-1deg)";
     const away = `translateX(${direction * 115}%) rotate(${direction * 13}deg)`;
     document.dispatchEvent(new Event("stck:page"));
@@ -135,7 +163,7 @@
   }
   // Existing catalogue selection also updates labels and keyboard navigation.
   document.addEventListener("stck:collection", (e) =>
-    turn(Number(e.detail) - 1),
+    turn(tabs.findIndex(tab=>tab.dataset.collection===String(e.detail))),
   );
   collection.querySelector(".collection-tabs").addEventListener(
     "click",
@@ -148,10 +176,10 @@
     true,
   );
   previous.onclick = () => {
-    if (!turning && !lifted()) tabs[(current + 3) % 4].click();
+    if (!turning && !lifted()) tabs[(current + tabs.length - 1) % tabs.length].click();
   };
   next.onclick = () => {
-    if (!turning && !lifted()) tabs[(current + 1) % 4].click();
+    if (!turning && !lifted()) tabs[(current + 1) % tabs.length].click();
   };
   stack.addEventListener("pointerdown", (e) => {
     if (
@@ -200,7 +228,7 @@
       g.active &&
       Math.abs(g.dx) > Math.min(65, stack.clientWidth * 0.18)
     )
-      tabs[(current + (g.dx < 0 ? 1 : 3)) % 4].click();
+      tabs[(current + (g.dx < 0 ? 1 : tabs.length - 1)) % tabs.length].click();
     else sheets[current].style.transform = "";
   }
   stack.addEventListener("pointerup", (e) => finish(e));
@@ -210,5 +238,6 @@
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) finish(null, true);
   });
+  window.addEventListener('resize',layout);
   layout();
 })();

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "5",
+    "title": "Amour",
+    "tone": "#d5ada9",
+    "key": "amour"
+  },
+  {
+    "id": "1",
+    "title": "Douceurs",
+    "tone": "#aeb8a8",
+    "key": "douceurs"
+  },
+  {
+    "id": "2",
+    "title": "Saveurs",
+    "tone": "#c8b795",
+    "key": "saveurs"
+  },
+  {
+    "id": "3",
+    "title": "Plaisirs",
+    "tone": "#aab8bf",
+    "key": "plaisirs"
+  },
+  {
+    "id": "6",
+    "title": "Intimité",
+    "tone": "#c5aaa3",
+    "key": "intimite"
+  },
+  {
+    "id": "4",
+    "title": "Porn & love",
+    "tone": "#b4abc4",
+    "key": "porn-love"
+  },
+  {
+    "id": "7",
+    "title": "Rouge-gorge",
+    "tone": "#c68483",
+    "special": true,
+    "key": "rouge-gorge"
+  },
+  {
+    "id": "8",
+    "key": "monoprix",
+    "title": "Monoprix",
+    "tone": "#bd8c86",
+    "special": true
+  }
+]

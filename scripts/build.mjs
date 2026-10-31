@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import { build } from "esbuild";
 import sharp from "sharp";
+await import("./sync-catalogue.mjs");
 const preview = process.argv.includes("--preview");
 let local = JSON.parse(await fs.readFile("config.public.json", "utf8"));
 try {

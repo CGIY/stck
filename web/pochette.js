@@ -188,7 +188,7 @@
   async function prepareSticker() {
     const token=++decodeToken;
     if (!window.STCK) throw new Error('Un instant, la bibliothèque se prépare.');
-    prizePaper?.dispose();prizePaper=null;
+    clearDuplicate();prizePaper?.dispose();prizePaper=null;
     $('prize').classList.remove('is-excess');
     selected=await window.STCK.requestDraw();
     const image=new Image();image.src=selected.src;image.alt='';assetError=false;
@@ -227,13 +227,14 @@
     $('prize').removeAttribute('aria-hidden');
     $('prize').querySelector('img').alt=selected.title;
     $('revealedTitle').textContent=selected.title;
-    $('revealedRarity').textContent = selected.kept === false ? 'Déjà 3 exemplaires · ce doublon disparaît' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 3` : selected.rare ? 'Édition rare · 1 sur 10' : 'Nouveau sticker';
+    $('revealedRarity').textContent = selected.kept === false ? 'Déjà 2 exemplaires · doublon supplémentaire' : selected.quantity > 1 ? `Exemplaire ${selected.quantity} sur 2` : selected.rare ? 'Édition rare' : 'Nouveau sticker';
     $('prize').classList.toggle('is-excess', selected.kept === false);
     $('revealInfo').hidden=false;
     const prize=$('prize');
     prize.tabIndex=0;prize.setAttribute('role','button');
     prize.setAttribute('aria-label',selected.title+' : glisse depuis un coin pour décoller, ou maintiens Espace.');
-    prizePaper=window.StckPaper.attach(prize,prize.querySelector('img'),{rare:selected.rare});
+    if(selected.kept===false){prize.removeAttribute('tabindex');prize.removeAttribute('role');startDuplicateDestruction();}
+    else prizePaper=window.StckPaper.attach(prize,prize.querySelector('img'),{rare:selected.rare});
     $('again').textContent=isDailyPouch?'Ajouter à l’album →':'Pochette suivante · 3 jetons →';
     if(resetFocus)$('again').focus({preventScroll:true});
   }
@@ -348,6 +349,7 @@
     if(coverage>.82)finish();
   }
   function reset() {
+    clearDuplicate();
     prizePaper?.dispose();prizePaper=null;prizeGesture=null;
     $('prize').removeAttribute('tabindex');$('prize').removeAttribute('role');
     step=0;pose={...base};gaze={x:0,y:0};pointer.active=false;stroke=null;coverage=0;wake=[];
@@ -364,7 +366,51 @@
     nextScratch=clock+3800;nextBlink=clock+2200;state('ready');selected=null;
     if(!raf){lastTime=0;raf=requestAnimationFrame(tick);}
   }
-  let prizePaper=null, prizeGesture=null;
+  let prizePaper=null, prizeGesture=null, duplicateFrame=0, duplicateTimer=0, duplicateCanvas=null;
+  function clearDuplicate(){
+    cancelAnimationFrame(duplicateFrame);clearTimeout(duplicateTimer);duplicateFrame=0;
+    duplicateCanvas?.remove();duplicateCanvas=null;
+    $('prize').classList.remove('duplicate-fragmenting','duplicate-cracking');
+    $('duplicateBonus').hidden=true;$('duplicateBonus').textContent='';
+  }
+  function startDuplicateDestruction(){
+    clearDuplicate();const result=selected,prize=$('prize'),image=prize.querySelector('img');
+    duplicateTimer=setTimeout(()=>{
+      if(selected!==result||phase!=='revealed')return;
+      if(motion.matches){prize.classList.add('duplicate-fragmenting');if(result.duplicate_tokens){$('duplicateBonus').textContent='+1 jeton';$('duplicateBonus').hidden=false;}return;}
+      prize.classList.add('duplicate-cracking');
+      const size=600,source=document.createElement('canvas');source.width=source.height=size;
+      const sourceCtx=source.getContext('2d');const ratio=image.naturalWidth/image.naturalHeight;
+      const width=Math.min(size,size*ratio),height=Math.min(size,size/ratio);
+      sourceCtx.drawImage(image,(size-width)/2,(size-height)/2,width,height);
+      if(result.rare){
+        sourceCtx.globalCompositeOperation='source-atop';const foil=sourceCtx.createLinearGradient(0,0,size,size);
+        foil.addColorStop(0,'#e7b8ed55');foil.addColorStop(.5,'#fff7c177');foil.addColorStop(1,'#a0e1cf55');
+        sourceCtx.fillStyle=foil;sourceCtx.fillRect(0,0,size,size);
+      }
+      duplicateCanvas=document.createElement('canvas');duplicateCanvas.className='duplicate-shreds';
+      duplicateCanvas.width=duplicateCanvas.height=size;duplicateCanvas.setAttribute('aria-hidden','true');prize.append(duplicateCanvas);
+      const ctx=duplicateCanvas.getContext('2d');const pieces=[];const tile=size/7;
+      for(let row=0;row<7;row++)for(let col=0;col<7;col++){
+        const x=col*tile,y=row*tile;pieces.push({x,y,vx:(col-3)*42+(Math.random()-.5)*100,vy:-160-Math.random()*110,spin:(Math.random()-.5)*10,jitter:Math.random()*9});
+      }
+      const start=performance.now();
+      function fragment(now){
+        const age=(now-start)/1250;ctx.clearRect(0,0,size,size);
+        if(age>.12)prize.classList.add('duplicate-fragmenting');
+        for(const p of pieces){
+          const t=Math.max(0,age-.09);ctx.save();ctx.translate(p.x+tile/2+p.vx*t,p.y+tile/2+p.vy*t+330*t*t);
+          ctx.rotate(p.spin*t);ctx.scale(1-t*.35,1-t*.35);ctx.globalAlpha=Math.max(0,1-Math.max(0,t-.3)/.65);
+          ctx.beginPath();ctx.moveTo(-tile/2,-tile/2+p.jitter);ctx.lineTo(tile/2,-tile/2);ctx.lineTo(tile/2-p.jitter,tile/2);ctx.lineTo(-tile/2,tile/2-p.jitter);ctx.closePath();ctx.clip();
+          ctx.drawImage(source,p.x,p.y,tile,tile,-tile/2,-tile/2,tile,tile);ctx.restore();
+        }
+        if(age>.64&&result.duplicate_tokens){$('duplicateBonus').textContent='+1 jeton';$('duplicateBonus').hidden=false;}
+        if(age<1)duplicateFrame=requestAnimationFrame(fragment);else{duplicateCanvas?.remove();duplicateCanvas=null;prize.classList.remove('duplicate-cracking');}
+      }
+      duplicateFrame=requestAnimationFrame(fragment);
+    },motion.matches?350:1000);
+  }
+
   const prize=$('prize');
   prize.addEventListener('dragstart',e=>e.preventDefault());
   prize.addEventListener('pointerdown',e=>{

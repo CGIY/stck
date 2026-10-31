@@ -424,3 +424,59 @@ body::after {
 .app-header .account-button { flex-shrink: 0; margin-left: 0; }
 .board-area .token-strip { padding: 9px 12px; min-height: 46px; }
 @media(max-width:370px){ .app-header { gap: 8px; padding-inline: 18px; } .header-wallet { padding: 8px 10px; font-size: 12px; } .app-header .sticker-logo { width: 132px; } }
+
+/* Six main sheets and a smaller, separate special edition. */
+.sticker-sheet { overflow: hidden; }
+.sheet-stack { transition: none; }
+.sheet-navigation .collection-tabs { gap: 10px; }
+.sheet-navigation .collection-tab { min-width: 22px; }
+.special-collection { margin: 10px 12px 0; }
+.special-collection > h2 { margin: 0 0 16px; color: #405441; font: italic 21px/1.2 Georgia,serif; }
+.special-collection .special-sheet { position: relative; width: min(100%,350px); margin: auto; padding: 16px 20px 22px; transform: rotate(1deg); background: linear-gradient(130deg,#fff7edab,#dcb9b433),var(--grain),#f2e5dc; box-shadow: 3px 5px 0 #b6a99b, 5px 9px 0 #ede7dd, 0 12px 25px #3c352b20; }
+.special-sheet .sticker-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.special-brand { display:block; width: 190px; max-width:100%; height:auto; }
+.special-sheet .sheet-heading { gap: 12px; min-height: 54px; }
+.sheet-heading .special-kicker { max-width:65px; font-size:8px; letter-spacing:.08em; line-height:1.4; text-transform:uppercase; }
+.special-sheet.is-undiscovered > .sheet-heading { filter: none; opacity: 1; }
+.special-sheet.is-undiscovered::after { top: 50px; }
+.board-area .token-strip { width: max-content; max-width: 100%; justify-self: center; padding: 8px 12px; }
+@media(min-width:900px){ .special-collection { grid-column: 1 / -1; width: 390px; justify-self: center; margin-top: 8px; } }
+@media(prefers-reduced-motion:reduce){ .sheet-stack { transition: none; } }
+.header-wallet { position: relative; }
+.wallet-arrow { position: absolute; width: 51px; height: 46px; right: 7px; top: calc(100% - 2px); overflow: visible; pointer-events: none; color: #566349; opacity: .82; }
+.wallet-arrow path { fill: none; stroke: currentColor; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.app-header { position: relative; z-index: 2; }
+@media(max-width:370px){ .wallet-arrow { width: 43px; height: 39px; right: 4px; } }
+
+/* Earned once, the rosette and mineral finish survive sticker use. */
+.sticker-sheet.is-completed { border: 2px solid #d2b778; background: linear-gradient(130deg,#f8e5b749,#c4e4d533 34%,#d6c2dc2e 67%,#f6e8b83d),var(--grain),#f3efdf; box-shadow: 0 0 0 2px #fff5dca6,inset 0 0 25px #e9cc8b33,0 7px 15px #544d3820; }
+.completion-emblem { display: block; flex-shrink:0; width:30px; height:35px; transform-origin:50% 30%; animation: completion-sway 4s ease-in-out infinite; }
+.completion-emblem svg { width:100%; height:100%; filter:drop-shadow(0 2px 1px #5f573d30); }
+.is-completed .sheet-meta { margin-left:auto; }
+.is-completed .sheet-heading { gap:9px; }
+.is-completed .sheet-heading h3 { color:#5b593e; }
+@keyframes completion-sway { 0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg) translateY(-1px)} }
+@media(prefers-reduced-motion:reduce){ .completion-emblem{animation:none;} }
+/* Brand marks have their own flexible title row so the artwork stays intact. */
+.special-collection { width: 100%; min-width:0; margin-inline:0; }
+.specials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:28px; align-items:start; padding:0 10px 16px; }
+.special-collection .special-sheet { min-width:0; max-width:350px; }
+.special-sheet .sheet-heading { align-items:center; gap:8px; }
+.special-title { min-width:0; flex:1; }
+.special-title h3 { margin:4px 0 0; min-width:0; }
+.special-title .special-brand { width:210px; max-width:100%; height:70px; object-fit:contain; object-position:left center; }
+.special-title .special-kicker { display:block; max-width:none; font-size:8px; letter-spacing:.13em; }
+.special-sheet .completion-emblem { width:27px; height:33px; }
+@media(min-width:900px){.special-collection { width:100%; max-width:790px; }}
+
+/* A third copy tears into paper shards and becomes one shared token. */
+.prize.is-excess { animation:none; }
+.duplicate-shreds { position:absolute; z-index:8; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.prize.duplicate-cracking { animation:duplicate-rattle .16s linear 4; }
+.prize.duplicate-fragmenting > img,
+.prize.duplicate-fragmenting::before,
+.prize.duplicate-fragmenting::after { visibility:hidden; }
+.reveal-info .duplicate-bonus { color:#416b49; font:800 21px/1.2 system-ui,sans-serif; letter-spacing:0; text-transform:none; margin:12px 0 4px; animation:duplicate-token-pop .55s cubic-bezier(.2,.8,.2,1); }
+@keyframes duplicate-rattle { 0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg) scale(.98)}75%{transform:rotate(3deg) scale(1.025)} }
+@keyframes duplicate-token-pop { 0%{opacity:0;transform:translateY(15px) scale(.6)}65%{opacity:1;transform:translateY(-3px) scale(1.15)}100%{transform:none} }
+@media(prefers-reduced-motion:reduce){.prize.duplicate-cracking,.reveal-info .duplicate-bonus{animation:none;}}
