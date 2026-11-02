@@ -14,6 +14,8 @@ let user = null,
   poll = null;
 let identityVersion = 0,
   statusTimer;
+let discoveryHistory = null;
+const activeStickerIds = new Set(catalog.filter(item => item.active !== false).map(item => item.id));
 let previewMode = false,
   inventory = new Map(),
   inventoryCopyNos = new Map(),
@@ -38,7 +40,30 @@ function say(text) {
     .querySelector(".account-feedback")
     ?.replaceChildren(document.createTextNode(text));
 }
+function renderPreviousCollectionRewards(rows){
+  const section=document.querySelector('.account-dialog #previous-emblems');
+  const list=section?.querySelector('#previous-emblems-list');
+  if(!section||!list)return;
+  const currentKeys=new Set(collections.map(group=>group.key));
+  const previousLabels={douceurs:'Douceurs',saveurs:'Saveurs',plaisirs:'Plaisirs',intimite:'Intimité','porn-love':'Porn & love'};
+  const previous=new Map();
+  for(const row of Array.isArray(rows)?rows:[]){
+    if(typeof row?.collection_key==='string'&&!currentKeys.has(row.collection_key))previous.set(row.collection_key,row);
+  }
+  list.replaceChildren();
+  for(const key of previous.keys()){
+    const item=document.createElement('li');
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    icon.setAttribute('viewBox','0 0 40 46');icon.setAttribute('aria-hidden','true');icon.setAttribute('focusable','false');
+    icon.innerHTML='<path d="M11 27L7 43L18 38L22 44L27 27" fill="#a6b39a" stroke="#566c50" stroke-width="2"/><path d="M20 2L26 6L33 6L35 14L39 20L35 26L33 33L26 34L20 38L14 34L7 33L5 26L1 20L5 14L7 6L14 6Z" fill="#e1c07b" stroke="#76633e" stroke-width="2"/><path d="M11 20L17 26L29 13" fill="none" stroke="#647252" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';
+    const label=document.createElement('span');
+    const fallback=key.replace(/-/g,' ');label.textContent=previousLabels[key]||fallback.charAt(0).toUpperCase()+fallback.slice(1);
+    item.append(icon,label);list.append(item);
+  }
+  section.hidden=previous.size===0;
+}
 function publishCollectionRewards(rows){
+  renderPreviousCollectionRewards(rows);
   document.dispatchEvent(new CustomEvent('stck:rewards',{detail:rows}));
 }
 function previewCollectionRewards(){
@@ -65,7 +90,11 @@ async function refreshCollectionRewards(){
 }
 function renderWallet() {
   const balance = document.querySelector("#wallet-balance");
-  if (balance) balance.textContent = `${sharedTokens} ${sharedTokens === 1 ? "jeton" : "jetons"}`;
+  if (balance) {
+    balance.textContent = String(sharedTokens);
+    balance.setAttribute("aria-label", `${sharedTokens} ${sharedTokens === 1 ? "champignon" : "champignons"}`);
+    balance.title = balance.getAttribute("aria-label");
+  }
 }
 async function syncDailyPouchLink() {
   const link = document.querySelector(".daily-pouch-link");
@@ -88,9 +117,11 @@ async function syncDailyPouchLink() {
     if (uid !== user?.id) return;
   }
   link.dataset.available = String(available);
-  link.textContent = available ? "Réclamer le sticker du jour" : "Sticker du jour récupéré";
-  link.setAttribute("aria-label", available ? "Réclamer le sticker gratuit du jour" : "Sticker du jour déjà récupéré");
+  link.textContent = available ? "Entrer dans la forêt" : "Sticker du jour récupéré";
+  link.setAttribute("aria-label", available ? "Entrer dans la forêt pour trouver ton sticker du jour offert" : "Sticker du jour déjà récupéré");
   link.setAttribute("aria-disabled", String(!available));
+  const hint = document.querySelector(".daily-forest-hint");
+  if (hint) hint.textContent = available ? "Ton sticker du jour · offert" : "Une nouvelle découverte demain";
 }
 document.querySelector(".daily-pouch-link")?.addEventListener("click", (event) => {
   if (event.currentTarget.dataset.available === "false") event.preventDefault();
@@ -115,6 +146,7 @@ dialog.innerHTML = `<button class="dialog-close" aria-label="Fermer">×</button>
  </section>
 <section data-view="setup" hidden><p>Votre espace est en cours de préparation. Recharge la page dans un instant.</p></section>
 <section data-view="account" hidden><p id="space-description"></p>
+<section class="previous-emblems" id="previous-emblems" aria-labelledby="previous-emblems-title" hidden><h2 id="previous-emblems-title">Emblèmes précédents</h2><ul class="previous-emblems-list" id="previous-emblems-list" aria-label="Planches complétées précédemment"></ul></section>
 <h2>Notifications</h2><p id="push-info"></p><p>Le rappel quotidien t’indique qu’un sticker gratuit est prêt. Chaque téléphone s’active séparément.</p><button id="enable-push">Activer sur cet appareil</button><button id="disable-push" class="secondary">Désactiver sur cet appareil</button>
 <form id="preferences-form"><label class="check"><input name="daily" type="checkbox">Rappel quotidien</label><label>À quelle heure ?<input name="time" type="time" value="18:30" required></label><label class="check"><input name="news" type="checkbox">Les nouveautés STCK</label><p id="timezone-label"></p><button>Enregistrer mes préférences</button></form>
 <h2>Dernières nouvelles</h2><ul id="inbox"></ul><button id="logout" class="secondary">Se déconnecter</button></section>`;
@@ -148,7 +180,7 @@ dialog.addEventListener("click", (e) => {
 function handleError(error) {
   say(
     navigator.onLine
-      ? error?.message || "Une erreur est survenue. Réessaie."
+      ? error?.message?.replace(/jetons/gi, "champignons").replace(/jeton/gi, "champignon") || "Une erreur est survenue. Réessaie."
       : "Hors connexion. Réessaie quand le réseau revient.",
   );
 }
@@ -239,7 +271,7 @@ $("#logout").onclick = async () => {
   }
 };
 function localKey() {
-  return user && space
+  return !previewMode && user && space
     ? "stck:board:" + user.id + ":" + space.id
     : "stck:preview:board";
 }
@@ -257,7 +289,7 @@ function cache(rows) {
     say("Le stockage de cet appareil est indisponible.");
   }
 }
-function setDiscoveries(ids = []) {
+function setDiscoveries(ids = [], discoveredIds = ids) {
   inventory = new Map();
   ids.forEach((id) =>
     inventory.set(id, Math.min(2, (inventory.get(id) || 0) + 1)),
@@ -265,12 +297,12 @@ function setDiscoveries(ids = []) {
   inventoryCopyNos = new Map(
     [...inventory].map(([id, count]) => [id, Array.from({ length: count }, (_, i) => i + 1)]),
   );
-  document.dispatchEvent(new CustomEvent("stck:discoveries", { detail: ids }));
+  document.dispatchEvent(new CustomEvent("stck:discoveries", { detail: [...new Set(discoveredIds)] }));
   document.body.dataset.collectionReady = "true";
   refreshStock();
 }
 function refreshStock() {
-  const owner = user?.id || "preview";
+  const owner = previewMode ? "preview" : user?.id || "preview";
   const stock = catalog.map((item) => {
     const copyNos = inventoryCopyNos.get(item.id) || [];
     const used = new Set(
@@ -294,7 +326,23 @@ function refreshStock() {
   });
   document.dispatchEvent(new CustomEvent("stck:stock", { detail: stock }));
 }
+function previewDiscoveries(ids = []) {
+  let seen = [];
+  try {
+    const stored = JSON.parse(sessionStorage.getItem("stck:preview-seen") || "[]");
+    if (Array.isArray(stored)) seen = stored;
+  } catch {}
+  return [...new Set([...seen, ...ids])];
+}
 function startPreview() {
+  if (!previewMode) {
+    user = null;
+    space = null;
+    clearIdentity();
+    pending.clear();
+    clearInterval(poll);
+    bridge.ready = false;
+  }
   previewMode = true;
   renderWallet();
   sessionStorage.setItem("stck:preview-mode", "true");
@@ -302,16 +350,16 @@ function startPreview() {
   try {
     counts = JSON.parse(sessionStorage.getItem("stck:preview-stock") || "{}");
   } catch {}
-  setDiscoveries(
-    catalog.flatMap((item) =>
-      Array(Math.min(2, counts[item.id] || 0)).fill(item.id),
-    ),
+  const ids = catalog.flatMap((item) =>
+    Array(Math.min(2, counts[item.id] || 0)).fill(item.id),
   );
+  setDiscoveries(ids, previewDiscoveries(ids));
   restoreBoard(readLocal());
   previewCollectionRewards();
 }
 function clearIdentity() {
   identityVersion++;
+  discoveryHistory = null;
   previewMode = false;
   sharedTokens = 0;
   archivedChallenges = [];
@@ -354,7 +402,7 @@ const bridge = {
     }
     if (!user || !space) {
       show();
-      throw Error("Entre ton code pour conserver tes pochettes.");
+      throw Error("Entre ton code pour conserver tes découvertes.");
     }
     const uid = user.id,
       version = identityVersion;
@@ -380,14 +428,18 @@ const bridge = {
     renderWallet();
     const id = lastDraw.sticker_id;
     if (uid !== user?.id || version !== identityVersion)
-      throw Error("Le compte a changé. Rouvre ta pochette.");
+      throw Error("Le compte a changé. Retourne dans la forêt.");
     const item = catalog.find((x) => x.id === id);
     if (!item) throw Error("Sticker inconnu. Recharge l’application.");
+    if (discoveryHistory?.uid === uid && discoveryHistory.version === version) {
+      discoveryHistory.ids.add(id);
+    }
     return { ...item, ...lastDraw };
   },
   drawRevealed: () => {
     if (!client || previewMode) {
-      setDiscoveries([...inventory].flatMap(([id, count]) => Array(count).fill(id)));
+      const ids = [...inventory].flatMap(([id, count]) => Array(count).fill(id));
+      setDiscoveries(ids, previewDiscoveries(ids));
       previewCollectionRewards();
       say("Aperçu · sticker ajouté à cette collection locale.");
       return;
@@ -398,7 +450,7 @@ const bridge = {
         ? lastDraw.quantity > 1
           ? `${lastDraw.quantity} exemplaires dans ta collection.`
           : "Nouveau sticker dans ta collection."
-        : "Déjà 2 exemplaires : doublon transformé en 1 jeton.",
+        : "Déjà 2 exemplaires : doublon transformé en 1 champignon.",
     );
     refreshDiscoveries().catch(handleError);
   },
@@ -521,8 +573,49 @@ async function refreshWalletAndArchive() {
   renderWallet();
   await refreshCollectionRewards();
 }
+async function loadDiscoveryHistory(uid, version, ownedIds) {
+  const isIdentityCurrent = () => !previewMode && user?.id === uid && identityVersion === version;
+  if (!client || !isIdentityCurrent()) return null;
+  if (!discoveryHistory || discoveryHistory.uid !== uid || discoveryHistory.version !== version) {
+    discoveryHistory = { uid, version, ids: new Set(), offset: 0, complete: false, pending: null };
+  }
+  const history = discoveryHistory;
+  ownedIds.forEach(id => history.ids.add(id));
+  const allActiveKnown = () => [...activeStickerIds].every(id => history.ids.has(id));
+  if (allActiveKnown()) history.complete = true;
+  if (history.complete) return [...history.ids];
+  if (history.pending) return history.pending;
+  const isCurrent = () => isIdentityCurrent() && discoveryHistory === history;
+  history.pending = (async () => {
+    const pageSize = 1000;
+    while (!history.complete) {
+      let rows;
+      try {
+        rows = await checked(client.from("pouch_draws")
+          .select("sticker_id")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: true })
+          .order("request_id", { ascending: true })
+          .range(history.offset, history.offset + pageSize - 1));
+      } catch (error) {
+        if (!isCurrent()) return null;
+        throw error;
+      }
+      if (!isCurrent()) return null;
+      rows.forEach(row => history.ids.add(row.sticker_id));
+      history.offset += rows.length;
+      history.complete = rows.length < pageSize || allActiveKnown();
+    }
+    return isCurrent() ? [...history.ids] : null;
+  })();
+  try {
+    return await history.pending;
+  } finally {
+    history.pending = null;
+  }
+}
 async function refreshDiscoveries() {
-  if (!user) return;
+  if (!client || !user || previewMode) return;
   const uid = user.id,
     version = identityVersion;
   const draws = await checked(
@@ -535,8 +628,10 @@ async function refreshDiscoveries() {
       .limit(2000),
   );
   if (user?.id !== uid || version !== identityVersion) return;
-  const owned = new Set(draws.map((x) => x.sticker_id));
-  setDiscoveries(draws.map((x) => x.sticker_id));
+  const ownedIds = draws.map(draw => draw.sticker_id);
+  const discoveredIds = await loadDiscoveryHistory(uid, version, ownedIds);
+  if (previewMode || user?.id !== uid || version !== identityVersion || !discoveredIds) return;
+  setDiscoveries(ownedIds, discoveredIds);
   inventoryCopyNos = new Map();
   for (const draw of draws) {
     const slots = inventoryCopyNos.get(draw.sticker_id) || [];
@@ -617,7 +712,7 @@ document.addEventListener("stck:challenge-action", async (event) => {
       document.dispatchEvent(new CustomEvent("stck:restore-one", { detail: { ...current, removed: true } }));
       await refreshWalletAndArchive();
       await refreshDiscoveries();
-      say("Défi archivé : +1 jeton pour votre duo.");
+      say("Défi archivé : +1 champignon pour votre duo.");
       return;
     }
     let query = client.from("placements").update({ challenge_status: wantedStatus })
@@ -868,7 +963,7 @@ async function init() {
   if (!client) {
     $("#login-form button").disabled = true;
     say("Aperçu local · connexion et notifications à configurer");
-    restoreBoard(readLocal());
+    startPreview();
     return;
   }
   const { data, error } = await client.auth.getSession();
@@ -877,8 +972,16 @@ async function init() {
   syncDailyPouchLink();
   client.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_OUT") {
+      const preservePreview = previewMode || sessionStorage.getItem("stck:preview-mode") === "true";
       user = null;
       space = null;
+      if (preservePreview) {
+        pending.clear();
+        clearInterval(poll);
+        bridge.ready = false;
+        if (!previewMode) startPreview();
+        return;
+      }
       clearIdentity();
       pending.clear();
       clearInterval(poll);
@@ -886,6 +989,8 @@ async function init() {
       restoreBoard([]);
       view("login");
       show();
+    } else if (previewMode && event !== "SIGNED_IN") {
+      return;
     } else if (session?.user?.id !== user?.id) {
       clearIdentity();
       location.reload();

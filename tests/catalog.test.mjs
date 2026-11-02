@@ -10,7 +10,7 @@ before(async()=>{
  db=new PGlite();
  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values('${A}'),('${B}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
  // The earlier daily_stickers_consumption.sql draft was superseded by expiry.sql.
- const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_two_copy_cap_duplicate_tokens')&&!f.includes('_expanded_sticker_catalog')&&!f.includes('_permanent_collection_rewards')).sort();
+ const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_small_collection_sheets')&&!f.includes('_two_copy_cap_duplicate_tokens')&&!f.includes('_expanded_sticker_catalog')&&!f.includes('_permanent_collection_rewards')).sort();
  for(const file of files)await db.exec(await fs.readFile('supabase/migrations/'+file,'utf8'));
  space=(await as(A,'select public.create_space() as id')).rows[0].id;
  const token=(await as(A,'select public.invite_partner() as token')).rows[0].token;await as(B,'select public.join_space($1)',[token]);

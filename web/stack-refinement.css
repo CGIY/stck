@@ -1,0 +1,219 @@
+/* One pocket-sized album: every sheet uses the same two-by-two paper format. */
+.collection {
+  width: min(100%, 376px);
+  min-width: 0;
+  justify-self: center;
+  margin-inline: auto;
+}
+.collection .album-heading { padding-inline: 4px; margin-bottom: 17px; }
+.collection .album-heading > span { max-width: 120px; text-wrap: balance; }
+.collection .collection-window,
+.collection .collection-content { width: 100%; min-width: 0; }
+.collection .sheet-stack {
+  --pocket-height: 354px;
+  position: relative;
+  width: min(calc(100% - 12px), 350px);
+  height: var(--pocket-height);
+  min-height: var(--pocket-height);
+  margin: 0 auto 25px;
+  padding: 0;
+  overflow: visible;
+  touch-action: pan-y;
+  isolation: isolate;
+  transition: none;
+}
+.collection .sheet-stack > .sticker-sheet {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 16px 18px 20px;
+  border: 2px solid #fff9ea;
+  border-radius: 18px 21px 19px 22px;
+  box-shadow: 1px 3px 0 #64704e36, 0 8px 18px #374a3017;
+  transform: translate(calc(var(--depth) * 2.5px), calc(var(--depth) * 4px)) rotate(calc(-.6deg + var(--depth) * .7deg));
+  transform-origin: 50% 80%;
+  animation: none;
+  overflow: hidden;
+}
+.collection .sheet-stack > .sticker-sheet:not(.is-completed):not(.is-undiscovered) {
+  background: linear-gradient(125deg, #fffaf16b, #fffaf100 55%), var(--grain), color-mix(in srgb, var(--tone) 16%, #f9f4e8);
+}
+.collection .sheet-stack > .sticker-sheet[hidden] { display: none !important; }
+.sheet-stack .sheet-heading {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 78px;
+  height: 78px;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.sheet-stack .sheet-title { flex: 1; min-width: 0; }
+.sheet-stack .sheet-kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: #7d856d;
+  font: 650 8px/1.2 system-ui, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.sheet-stack .sheet-heading h3 {
+  margin: 0;
+  max-width: 100%;
+  color: #42583f;
+  font: 400 25px/1.08 "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  letter-spacing: -.015em;
+  -webkit-text-stroke: 0;
+  text-shadow: 0 1px 0 #fffaf0;
+  transform: rotate(-1deg);
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+.sheet-stack .sheet-heading .sheet-brand {
+  display: block;
+  width: min(100%, 190px);
+  max-width: 100%;
+  height: 53px;
+  object-fit: contain;
+  object-position: left center;
+}
+.sheet-stack .sheet-meta {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  align-content: center;
+  gap: 7px;
+  min-width: 35px;
+  margin-left: 0;
+}
+.sheet-stack .sheet-meta .season-tag { font: 600 7px/1 system-ui, sans-serif; letter-spacing: .1em; color: #889078; }
+.sheet-stack .sheet-meta .sheet-number { font: 600 9px/1 system-ui, sans-serif; letter-spacing: .05em; color: #7a856b; white-space: nowrap; }
+.sheet-stack .sheet-heading .completion-emblem { flex: 0 0 25px; width: 25px; height: 30px; margin-left: -4px; }
+.sheet-stack .sticker-sheet .sticker-grid {
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  height: 216px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 96px);
+  align-content: space-between;
+  justify-items: center;
+  align-items: center;
+  gap: 16px 17px;
+  margin: 0;
+  padding: 0;
+}
+.sheet-stack .sticker-sheet .sticker-slot,
+.sheet-stack .sticker-sheet .rare-slot { box-sizing: border-box; width: 100%; height: 96px; min-width: 0; }
+.sheet-stack .sticker-sheet .peel-sticker,
+.sheet-stack .sticker-sheet .rare-sticker,
+.sheet-stack .sticker-sheet .sticker-slot::before,
+.sheet-stack .sticker-sheet .rare-slot::before { width: 94px; height: 94px; max-width: 100%; }
+.sheet-stack .special-sheet.is-undiscovered > .sheet-heading { opacity: 1; filter: none; }
+.sheet-stack .special-sheet.is-undiscovered::after { inset: 90px 0 0; }
+.sheet-stack .sticker-sheet.is-undiscovered::after { font-size: 76px; }
+.collection .sheet-navigation {
+  box-sizing: border-box;
+  display: grid;
+  width: min(100%, 220px);
+  max-width: 100%;
+  height: 54px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  grid-template-rows: 44px;
+  align-items: center;
+  gap: 0 6px;
+  margin: 0 auto;
+  padding: 3px 5px;
+  border: 1.5px solid #fff9e8;
+  border-radius: 27px 25px 28px 26px;
+  background: #f8f3e1ed;
+  box-shadow: 0 3px 0 #75805c28, inset 0 1px #fffdf4;
+  transform: none;
+}
+.collection .collection-tabs { display: none !important; }
+.collection .sheet-navigation .sheet-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #526d49;
+  cursor: pointer;
+  transition: color .16s ease, background-color .16s ease, transform .16s ease;
+}
+.collection .sheet-navigation .sheet-arrow:first-child { grid-column: 1; grid-row: 1; }
+.collection .sheet-navigation .sheet-arrow:nth-of-type(2) { grid-column: 3; grid-row: 1; }
+.collection .sheet-navigation .sheet-arrow svg { display: block; width: 28px; height: 24px; overflow: visible; pointer-events: none; }
+.collection .sheet-navigation .sheet-arrow path { fill: none; stroke: currentColor; stroke-width: 3.8; stroke-linecap: round; stroke-linejoin: round; }
+.collection .sheet-navigation .sheet-arrow:hover { color: #3c5e36; background: #e2e9d55e; transform: none; }
+.collection .sheet-navigation .sheet-arrow:active { transform: scale(.93); }
+.collection .sheet-navigation .sheet-arrow:focus-visible { outline: 2px solid #668057; outline-offset: 1px; }
+.collection .sheet-navigation .sheet-route {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  color: #46613f;
+  font: 700 12px/1 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.collection .sheet-navigation .sheet-route > .sheet-index-current { flex: 0 0 auto; width: auto; overflow: visible; color: #405d3b; font: 800 16px/1 system-ui, sans-serif; letter-spacing: -.04em; }
+.collection .sheet-navigation .sheet-index-slash { color: #a2ab8f; font: 400 15px/1 Georgia, serif; }
+.collection .sheet-navigation .sheet-index-total { color: #7c886b; font: 600 11px/1 system-ui, sans-serif; letter-spacing: -.025em; }
+@media (min-width: 900px) {
+  .collection { width: min(100%, 376px); align-self: start; }
+  .collection .sheet-stack { --pocket-height: 354px; }
+}
+@media (max-width: 370px) {
+  .collection .sheet-stack { --pocket-height: 332px; width: calc(100% - 10px); }
+  .collection .sheet-stack > .sticker-sheet { padding: 14px 14px 16px; }
+  .sheet-stack .sheet-heading { min-height: 73px; height: 73px; margin-bottom: 12px; gap: 7px; }
+  .sheet-stack .sheet-heading h3 { font-size: 23px; }
+  .sheet-stack .sheet-heading .sheet-brand { height: 48px; }
+  .sheet-stack .sheet-heading .completion-emblem { flex-basis: 22px; width: 22px; height: 27px; }
+  .sheet-stack .sheet-meta { min-width: 31px; }
+  .sheet-stack .sheet-meta .season-tag { font-size: 6px; }
+  .sheet-stack .sheet-meta .sheet-number { font-size: 8px; }
+  .sheet-stack .sticker-sheet .sticker-grid { height: 205px; grid-template-rows: repeat(2, 91px); gap: 14px 12px; }
+  .sheet-stack .sticker-sheet .sticker-slot,
+  .sheet-stack .sticker-sheet .rare-slot { height: 91px; }
+  .sheet-stack .sticker-sheet .peel-sticker,
+  .sheet-stack .sticker-sheet .rare-sticker,
+  .sheet-stack .sticker-sheet .sticker-slot::before,
+  .sheet-stack .sticker-sheet .rare-slot::before { width: 88px; height: 88px; }
+  .collection .sheet-navigation { width: min(100%, 220px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collection .sheet-stack > .sticker-sheet { transition: none; }
+  .collection .sheet-navigation .sheet-arrow { transition: none; }
+}
+.collection .sheet-stack > .sticker-sheet.is-completed {
+  border-color: #d2b778;
+  box-shadow: 0 0 0 2px #fff5dc91, inset 0 0 24px #e9cc8b29, 1px 4px 0 #a7976b45, 0 9px 20px #5c543523;
+}
+
+.sheet-stack .special-sheet .sheet-heading h3 { transform:none; -webkit-text-stroke:0; text-shadow:none; }
+/* Unmodified Lilita One, bundled with its SIL OFL 1.1 licence in assets/fonts. */
+@font-face {
+  font-family: "Lilita One";
+  src: url("assets/fonts/LilitaOne-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+

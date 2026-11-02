@@ -5,7 +5,7 @@ const missing = [];
 for (const file of files.filter((f) => /\.(html|css|js)$/.test(f))) {
   const content = await fs.readFile("dist/" + file, "utf8");
   for (const match of content.matchAll(
-    /(?:assets\/[\w.-]+\.(?:webp|png|svg)|(?:href|src)="([\w.-]+\.(?:js|css|html|webmanifest|png|svg))(?:\?[^\"]*)?")/g,
+    /(?:assets\/[\w./-]+\.(?:webp|png|svg|ttf)|(?:href|src)="([\w.-]+\.(?:js|css|html|webmanifest|png|svg))(?:\?[^\"]*)?")/g,
   )) {
     const target = match[1] || match[0];
     try {

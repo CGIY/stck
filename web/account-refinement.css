@@ -1,0 +1,218 @@
+/* Warm paper dialogs with clear controls and a close button that stays reachable. */
+.account-dialog,
+.challenge-dialog {
+  box-sizing: border-box;
+  width: min(440px, calc(100% - 28px));
+  max-width: 440px;
+  max-height: min(86svh, 760px);
+  max-height: min(calc(100dvh - 32px), 760px);
+  margin: auto;
+  padding: 24px 25px 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8bfac #f5eedc;
+  border: 2px solid #fff9e9;
+  border-radius: 25px 29px 26px 23px;
+  background: linear-gradient(135deg, #fffaf0b3, #fffaf000 50%), #f8f1df;
+  color: #364b39;
+  box-shadow: 0 4px 0 #66745a4d, 0 22px 70px #263a3247, inset 0 0 0 1px #d7d4bd73;
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.account-dialog::backdrop,
+.challenge-dialog::backdrop {
+  background: #233b304f;
+  backdrop-filter: blur(7px) saturate(.8);
+  -webkit-backdrop-filter: blur(7px) saturate(.8);
+}
+.account-dialog[open],
+.challenge-dialog[open] { animation: stck-dialog-settle .2s cubic-bezier(.22,.7,.25,1) both; }
+.account-dialog .dialog-close,
+.challenge-dialog .challenge-close {
+  position: sticky;
+  float: right;
+  top: 0;
+  right: auto;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: -8px -8px 4px 12px;
+  padding: 0;
+  border: 1px solid #c4cbb870;
+  border-radius: 50%;
+  background: #fbf6e8;
+  color: #53674d;
+  box-shadow: 0 2px 3px #40543d12, inset 0 1px #fffdf5;
+  font: 400 26px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.account-dialog h1 {
+  margin: 7px 40px 17px 0;
+  color: #344b36;
+  font: italic 500 clamp(27px, 5.8vw, 32px)/1.14 Georgia, serif;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.account-dialog h2 {
+  margin: 25px 0 12px;
+  padding-top: 21px;
+  border-top: 1px solid #bfc7b24d;
+  color: #3b523d;
+  font: italic 500 22px/1.2 Georgia, serif;
+  letter-spacing: -.025em;
+}
+.account-dialog p { margin: 11px 0; line-height: 1.55; }
+.account-dialog section > p:first-child { margin-top: 0; color: #5c6d55; font-size: 13px; }
+.account-dialog .account-state,
+.account-dialog #space-description { color: #6a765e; font-size: 12px; line-height: 1.5; }
+.account-dialog .account-feedback:not(:empty) {
+  clear: both;
+  padding: 10px 12px;
+  border: 1px solid #aab99b70;
+  border-radius: 11px;
+  background: #e7eddb80;
+  color: #4b6242;
+  font-size: 12px;
+}
+.account-dialog form { margin: 18px 0 0; }
+.account-dialog label { gap: 7px; margin: 15px 0; color: #4d6146; font-size: 12px; font-weight: 650; line-height: 1.4; }
+.account-dialog input:not([type="checkbox"]) {
+  min-width: 0;
+  min-height: 49px;
+  padding: 12px 14px;
+  border: 1px solid #b9c3ad;
+  border-radius: 12px 13px 11px 12px;
+  background: #fffdf5;
+  color: #32472f;
+  box-shadow: inset 0 2px 3px #4a5b3b07, 0 1px #fffdf8;
+  font: 400 16px/1.3 system-ui, sans-serif;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.account-dialog input::placeholder { color: #929a85; opacity: 1; }
+.account-dialog input:not([type="checkbox"]):focus { border-color: #637e54; outline: none; box-shadow: 0 0 0 3px #829a6d24, inset 0 1px 2px #4a5b3b05; }
+.account-dialog button:not(.dialog-close),
+.challenge-dialog .challenge-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 17px;
+  border: 1px solid #365e3f40;
+  border-radius: 13px 14px 12px 14px;
+  color: #fffaf0;
+  font: 700 13px/1.3 system-ui, sans-serif;
+  text-align: center;
+  text-wrap: balance;
+  box-shadow: 0 2px 0 #2d4e3540, inset 0 1px #dce9d336;
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+  cursor: pointer;
+}
+.account-dialog button:not(.dialog-close):not(.secondary),
+.challenge-dialog .challenge-actions button:not(.secondary) { background: #4e7052; }
+.account-dialog button:not(.dialog-close):not(.secondary):hover,
+.challenge-dialog .challenge-actions button:not(.secondary):hover { background: #426447; }
+.account-dialog button:not(.dialog-close):active,
+.challenge-dialog .challenge-actions button:active { transform: translateY(1px); box-shadow: 0 1px 0 #2d4e3540, inset 0 1px #dce9d336; }
+.account-dialog button.secondary,
+.challenge-dialog .challenge-actions button.secondary { border-color: #c0c8b274; background: #edf0e291; color: #526747; box-shadow: inset 0 1px #fffdf3; }
+.account-dialog button.secondary:hover,
+.challenge-dialog .challenge-actions button.secondary:hover { background: #e3e9d7; }
+.account-dialog button:disabled { opacity: .5; cursor: wait; transform: none; }
+.account-dialog :is(button,input):focus-visible,
+.challenge-dialog button:focus-visible { outline: 3px solid #537b4b; outline-offset: 3px; }
+.account-dialog #login-form { margin-top: 22px; }
+.account-dialog #login-form > button { width: 100%; margin-top: 3px; }
+.account-dialog .login-note { margin: 12px 0 0; color: #7d846e; font-size: 11px; }
+.account-dialog #demo {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 17px auto -5px;
+  padding: 9px 14px;
+  border: 0;
+  background: transparent;
+  color: #61774f;
+  box-shadow: none;
+  font-size: 12px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.account-dialog #demo:hover { background: #e5ebd86b; }
+.account-dialog :is(#enable-push,#disable-push,#logout) { width: 100%; margin: 5px 0; }
+.account-dialog #preferences-form { margin-top: 22px; padding: 15px 14px 16px; border: 1px solid #bbc5ad70; border-radius: 16px 18px 17px 15px; background: #edf0e35c; }
+.account-dialog #preferences-form > label:first-child { margin-top: 0; }
+.account-dialog #preferences-form > button { width: 100%; margin-top: 7px; }
+.account-dialog .check { flex-direction: row; align-items: center; gap: 11px; min-height: 45px; margin: 10px 0; padding: 8px 9px; border: 1px solid transparent; border-radius: 11px; font-weight: 600; cursor: pointer; }
+.account-dialog .check:has(input:checked) { border-color: #b9c8ab66; background: #dce6cf70; }
+.account-dialog .check input[type="checkbox"] { appearance: auto; -webkit-appearance: checkbox; flex: 0 0 21px; width: 21px; height: 21px; margin: 0; padding: 0; accent-color: #59774c; cursor: pointer; }
+.account-dialog :is(#timezone-label,#push-info) { color: #7b866d; font-size: 11px; line-height: 1.5; }
+.account-dialog #inbox { margin: 0; padding: 0; list-style: none; }
+.account-dialog #inbox li { margin: 9px 0; padding: 12px; border: 1px solid #c7cbb94f; border-radius: 12px; background: #fffaf050; font-size: 12px; }
+.account-dialog #inbox p { margin: 5px 0 0; color: #6b795f; font-size: 12px; }
+.account-dialog #logout { margin-top: 20px; }
+.challenge-dialog { width: min(390px, calc(100% - 28px)); padding-bottom: 24px; }
+.challenge-dialog .challenge-kicker { margin: 4px 44px 12px 0; color: #8a8c72; font-size: 9px; letter-spacing: .15em; }
+.challenge-dialog h2 { clear: both; margin: 0 0 9px; padding-top: 12px; color: #3d553e; font: italic 500 27px/1.15 Georgia, serif; letter-spacing: -.03em; text-align: center; text-wrap: balance; }
+.challenge-dialog .challenge-author { margin: 0 0 18px; color: #8c8c75; font-size: 11px; line-height: 1.4; }
+.challenge-dialog .challenge-status { margin: 0 0 13px; padding: 11px 12px; border: 1px solid #afbf9c73; border-radius: 12px; background: #e7edd98c; color: #536c47; font-size: 12px; line-height: 1.45; }
+.challenge-dialog .challenge-note { margin: 0; color: #758066; font-size: 12px; line-height: 1.65; text-align: left; }
+.challenge-dialog .challenge-actions { gap: 10px; margin-top: 23px; }
+.challenge-dialog .challenge-actions button { width: 100%; }
+@keyframes stck-dialog-settle { from { opacity: 0; transform: translateY(7px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 370px) {
+  .account-dialog,
+  .challenge-dialog { width: calc(100% - 20px); padding: 21px 18px 23px; border-radius: 23px 25px 22px 24px; }
+  .account-dialog h1 { font-size: 27px; }
+  .account-dialog h2 { font-size: 21px; }
+  .account-dialog #preferences-form { padding: 13px 10px; }
+  .account-dialog .dialog-close,
+  .challenge-dialog .challenge-close { margin-right: -3px; }
+}
+@media (max-height: 560px) {
+  .account-dialog,
+  .challenge-dialog { max-height: calc(100dvh - 16px); padding-top: 18px; padding-bottom: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-dialog[open],
+  .challenge-dialog[open] { animation: none; }
+  .account-dialog button,
+  .account-dialog input,
+  .challenge-dialog button { transition: none; }
+}
+
+/* Previously earned emblems stay visible after the album changes. */
+.account-dialog .previous-emblems h2 { margin-top: 22px; padding-top: 18px; font-size: 20px; }
+.account-dialog .previous-emblems-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.account-dialog .previous-emblems-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 9px 10px;
+  border: 1px solid #d1bc8273;
+  border-radius: 12px 14px 11px 13px;
+  background: linear-gradient(125deg, #f7e9c98c, #f8f2e16b);
+  box-shadow: inset 0 1px #fff9e7;
+  color: #6c6748;
+  font: 650 11px/1.35 system-ui, sans-serif;
+}
+.account-dialog .previous-emblems-list svg { flex: 0 0 24px; width: 24px; height: 28px; }
+.account-dialog .previous-emblems-list span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 340px) {
+  .account-dialog .previous-emblems-list { grid-template-columns: 1fr; }
+}

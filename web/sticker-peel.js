@@ -10,7 +10,8 @@
   if (!stage || !dropTarget || !collectionWindow || !collectionTitle) return;
 
   const stickers = [...stage.querySelectorAll('.peel-sticker')];
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionPreference.matches;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const states = [];
   let gesture = null;
@@ -128,6 +129,10 @@
       logoFrame = requestAnimationFrame(animateLogo);
   }
   animateLogo(0);
+  motionPreference.addEventListener('change',()=>{
+    reducedMotion=motionPreference.matches;cancelAnimationFrame(logoFrame);
+    if(!document.hidden)animateLogo(performance.now());
+  });
   document.addEventListener('visibilitychange', () => {
     cancelAnimationFrame(logoFrame);
     if (!document.hidden) animateLogo(performance.now());
@@ -440,6 +445,31 @@
     setPosition(state, stickerRect.left - stageRect.left, stickerRect.top - stageRect.top);
   }
 
+  let edgeScrollFrame=0,edgeScrollTime=0,dragPointer=null;
+  function stopEdgeScroll(){cancelAnimationFrame(edgeScrollFrame);edgeScrollFrame=0;dragPointer=null;edgeScrollTime=0;}
+  function updateDraggedPosition(current,x,y){
+    const state=current.state,r=stage.getBoundingClientRect();
+    const ox=state.button.offsetWidth*.7,oy=state.button.offsetHeight*.7;
+    setPosition(state,clamp(x-r.left-current.offsetX,-ox,Math.max(-ox,stage.clientWidth-state.button.offsetWidth+ox)),clamp(y-r.top-current.offsetY,-oy,Math.max(-oy,stage.clientHeight-state.button.offsetHeight+oy)));
+    const hovered=findDropZone(state);dropZones.forEach(zone=>zone.classList.toggle('is-hovered',zone===hovered));
+  }
+  function scrollAtEdge(time){
+    edgeScrollFrame=0;
+    if(document.hidden||!dragPointer||(!gesture?.dragging&&!boardGesture?.moved)){stopEdgeScroll();return;}
+    const dt=Math.min(32,time-(edgeScrollTime||time-16));edgeScrollTime=time;
+    const y=dragPointer.y,band=76,height=window.innerHeight;
+    const speed=y<band?-10*clamp((band-y)/band,0,1):y>height-band?10*clamp((y-height+band)/band,0,1):0;
+    if(speed){
+      const before=window.scrollY;window.scrollBy(0,speed*dt/16);
+      if(window.scrollY!==before){
+        if(gesture?.dragging)updateDraggedPosition(gesture,dragPointer.x,dragPointer.y);
+        else if(boardGesture?.moved){const r=stage.getBoundingClientRect();boardGesture.entry.button.style.left=(dragPointer.x-r.left-boardGesture.offsetX)+'px';boardGesture.entry.button.style.top=(dragPointer.y-r.top-boardGesture.offsetY)+'px';}
+      }
+    }
+    edgeScrollFrame=requestAnimationFrame(scrollAtEdge);
+  }
+  function trackDragPointer(event){dragPointer={x:event.clientX,y:event.clientY};if(!edgeScrollFrame){edgeScrollTime=0;edgeScrollFrame=requestAnimationFrame(scrollAtEdge);}}
+
   function moveSticker(event) {
     if (!gesture || event.pointerId !== gesture.pointer) return;
     event.preventDefault();
@@ -457,17 +487,9 @@
     if (!current.dragging && travel >= Math.max(18, current.width * .22) && (elapsed >= 100 || travel > current.width * .5)) beginDrag(state, event, current);
 
     if (current.dragging) {
-      const stageRect = stage.getBoundingClientRect();
-      const overflowX = state.button.offsetWidth * .7;
-      const overflowY = state.button.offsetHeight * .7;
-      const maxLeft = Math.max(-overflowX, stage.clientWidth - state.button.offsetWidth + overflowX);
-      const maxTop = Math.max(-overflowY, stage.clientHeight - state.button.offsetHeight + overflowY);
-      const left = clamp(event.clientX - stageRect.left - current.offsetX, -overflowX, maxLeft);
-      const top = clamp(event.clientY - stageRect.top - current.offsetY, -overflowY, maxTop);
-      setPosition(state, left, top);
-      if (captionState === state) positionCaption();
-      const hoveredZone = findDropZone(state);
-      dropZones.forEach((zone) => zone.classList.toggle('is-hovered', zone === hoveredZone));
+      updateDraggedPosition(current,event.clientX,event.clientY);
+      trackDragPointer(event);
+      if(captionState===state)positionCaption();
     } else {
       state.goal = Math.max(state.goal, current.pull);
     }
@@ -481,6 +503,7 @@
     const current = gesture;
     const state = current.state;
     gesture = null;
+    stopEdgeScroll();
     if (state.button.hasPointerCapture(event.pointerId)) state.button.releasePointerCapture(event.pointerId);
     state.button.classList.remove('is-returning');
 
@@ -591,6 +614,8 @@
     image.addEventListener('load', resize, { once: true });
     if (image.complete) resize();
     new ResizeObserver(resize).observe(button);
+    button.setAttribute('aria-keyshortcuts','Enter Space');
+    button.title='Glisser pour coller · Entrée pour poser';
     button.addEventListener('dragstart', (event) => event.preventDefault());
     button.addEventListener('focus',()=>{if(button.matches(':focus-visible')&&!button.disabled)showCaption(state);});
     button.addEventListener('blur',hideCaption);
@@ -634,7 +659,7 @@
       button.style.setProperty('--light-y', `${clamp((event.clientY-rect.top)/rect.height,0,1)*100}%`);
     });
     button.addEventListener('click', (event) => {
-      if (event.detail === 0 && !button.disabled) showCaption(state);
+      if (event.detail === 0 && !button.disabled && state.ready) placeFromKeyboard(state);
     });
     button.addEventListener('pointerup', (event) => finishGesture(event));
     button.addEventListener('pointercancel', (event) => finishGesture(event, true));
@@ -702,11 +727,33 @@
     }
     document.dispatchEvent(new CustomEvent('stck:placement',{detail:row}));
   }
+  function placeFromKeyboard(state){
+    if(gesture||boardGesture||state.button.disabled)return;
+    hideCaption();const zone=dropZones[0];if(!zone)return;
+    const zr=zone.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+    const index=board.size,x=.25+(index%3)*.25,y=.3+(Math.floor(index/3)%2)*.4;
+    const width=state.button.offsetWidth,height=state.button.offsetHeight;
+    state.button.style.width=width+'px';state.button.style.height=height+'px';
+    stage.append(state.button);setPosition(state,zr.left-sr.left+x*zr.width-width/2,zr.top-sr.top+y*zr.height-height/2);
+    state.placed=true;state.dropZone=zone;state.position={left:parseFloat(state.button.style.left),top:parseFloat(state.button.style.top)};
+    persistPlacement(state);
+    zone.scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'center'});
+    const key=[state.button.dataset.copyOwner||'preview',state.id,state.button.dataset.copyNo||1].join(':');
+    board.get(key)?.button.focus({preventScroll:true});
+  }
+
   // Shared placements have their own DOM nodes. They never move a partner's
   // sticker into this account's private collection or reveal its ownership.
   const board = new Map();
   const placementKey = row => [row.copy_owner || 'preview',row.sticker_id,row.copy_no || 1].join(':');
   let boardGesture = null;
+  function cancelBoardGesture(){
+    const g=boardGesture;if(!g)return;boardGesture=null;stopEdgeScroll();g.entry.button.dataset.lifted='false';g.entry.paper.release();
+    if(g.entry.button.hasPointerCapture(g.id))g.entry.button.releasePointerCapture(g.id);
+    placeBoard(g.entry);
+  }
+  window.addEventListener('blur',cancelBoardGesture);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelBoardGesture();});
   function placeBoard(entry) {
     const zone = dropZones[entry.row.zone]; if (!zone) return;
     const zr = zone.getBoundingClientRect(), sr = stage.getBoundingClientRect();
@@ -748,20 +795,21 @@
       button.onpointermove = e => {
         const g = boardGesture; if (!g || g.entry !== entry || e.pointerId !== g.id) return;
         if (Math.hypot(e.clientX - g.x, e.clientY - g.y) < 8) return;
-        g.moved = true; entry.paper.lift(0,0,.34); const sr = stage.getBoundingClientRect();
+        g.moved = true; trackDragPointer(e); entry.paper.lift(0,0,.34); const sr = stage.getBoundingClientRect();
         button.style.left = (e.clientX - sr.left - g.offsetX) + 'px';
         button.style.top = (e.clientY - sr.top - g.offsetY) + 'px';
       };
       function end(e, cancel = false) {
         const g = boardGesture; if (!g || g.entry !== entry || g.id !== e.pointerId) return;
         boardGesture = null;
+        stopEdgeScroll();
         button.dataset.lifted = 'false';
         entry.paper.release();
         if (button.hasPointerCapture(e.pointerId)) button.releasePointerCapture(e.pointerId);
         if (g.moved && !cancel) {
           const zone = findDropZone(entry);
-          const home = document.querySelector('.sheet-stack').getBoundingClientRect();
-          if (!zone && entry.row.ownCopy && e.clientX >= home.left && e.clientX <= home.right && e.clientY >= home.top && e.clientY <= home.bottom) {
+          const overAlbum=[...document.querySelectorAll('.sheet-stack,.special-sheet')].some(sheet=>{const home=sheet.getBoundingClientRect();return e.clientX>=home.left&&e.clientX<=home.right&&e.clientY>=home.top&&e.clientY<=home.bottom;});
+          if (!zone && entry.row.ownCopy && overAlbum) {
             document.dispatchEvent(new CustomEvent('stck:placement', { detail: {...entry.row,removed:true} }));
             return;
           }
@@ -819,6 +867,8 @@
       state.button.dataset.copyOwner = item?.copy_owner || 'preview';
       state.button.dataset.copyNo = String(available[0] || 1);
       state.button.disabled = available.length === 0;
+      state.home.classList.toggle('has-no-copy',available.length===0);
+      state.home.classList.toggle('is-on-board',available.length===0&&!!item?.count);
       const discovered = state.button.dataset.discovered === 'true';
       state.home.classList.toggle('is-unowned', !discovered);
       state.home.dataset.collected = String(discovered);
@@ -826,11 +876,11 @@
       if (!badge) { badge=document.createElement('span'); badge.className='stock-count'; badge.setAttribute('aria-hidden','true'); state.home.append(badge); }
       badge.textContent = available.length > 1 ? '×'+available.length : '';
       badge.hidden = available.length < 2;
-      state.button.title = item?.count ? `${available.length} disponible(s) sur ${item.count}` : '';
+      state.button.title = item?.count ? `${available.length} disponible(s) sur ${item.count} · Entrée pour poser` : '';
     });
   });
   document.addEventListener('stck:identity', () => {
-    cancelGesture(); boardGesture = null; hideCaption();
+    cancelGesture(); stopEdgeScroll(); boardGesture = null; hideCaption();
     for (const entry of board.values()) { entry.paper.dispose(); entry.button.remove(); } board.clear();
     states.forEach(state => { state.button.disabled = true; state.home.classList.add('is-unowned'); state.home.dataset.collected = 'false'; });
   });

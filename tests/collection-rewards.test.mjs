@@ -10,7 +10,7 @@ async function rewards(uid){return (await as(uid,'select * from public.collectio
 before(async()=>{
  db=new PGlite();
  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values('${A}'),('${B}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
- const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_two_copy_cap_duplicate_tokens')&&!f.includes('_permanent_collection_rewards')).sort();
+ const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_small_collection_sheets')&&!f.includes('_two_copy_cap_duplicate_tokens')&&!f.includes('_permanent_collection_rewards')).sort();
  for(const file of files)await db.exec(await fs.readFile('supabase/migrations/'+file,'utf8'));
  // Before the reward migration, one lifetime-complete collection has no copies
  // left in stock. A second user has all but the rare and must not get a reward.

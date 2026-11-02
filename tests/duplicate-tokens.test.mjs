@@ -8,7 +8,7 @@ async function as(uid,sql,params=[]){await db.exec(`reset role;set request.jwt.c
 async function owner(sql,params=[]){await db.exec('reset role');return db.query(sql,params);}
 async function setup(database){
  await database.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values('${A}'),('${B}'),('${C}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
- const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_two_copy_cap_duplicate_tokens')).sort();
+ const files=(await fs.readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='20261030162000_daily_stickers_consumption.sql'&&!f.includes('_small_collection_sheets')&&!f.includes('_two_copy_cap_duplicate_tokens')).sort();
  for(const file of files)await database.exec(await fs.readFile('supabase/migrations/'+file,'utf8'));
 }
 before(async()=>{

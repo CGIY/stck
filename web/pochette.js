@@ -24,7 +24,7 @@
   // Keep each expressive pose, compress the pauses between them.
   const reactionDurations = [0, 650, 1000, 800, 1350];
   const burstDuration = 850, clearDuration = 550;
-  const messages = [isDailyPouch ? 'Touchez 4 fois pour ouvrir · sticker du jour offert' : 'Touchez 4 fois pour ouvrir · 3 jetons à la première touche', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
+  const messages = [isDailyPouch ? 'Touchez 4 fois pour ouvrir · sticker du jour offert' : 'Touchez 4 fois pour ouvrir · 3 champignons à la première touche', 'Hé ! Ça chatouille…', 'Mais… qu’est-ce que tu fais ?', 'Je te préviens…', 'ÇA. SUFFIT.'];
   const nodes = Object.fromEntries(['torso','face','eyeWhite','eyeClipPath','eyelid','gaze','brow','mouthShape','mouthClipPath','tongue','teeth','cheek','stressMarks','rig'].map(id => [id,$(id)]));
   const set = (id, attr, value) => nodes[id].setAttribute(attr, value);
 
@@ -233,9 +233,9 @@
     const prize=$('prize');
     prize.tabIndex=0;prize.setAttribute('role','button');
     prize.setAttribute('aria-label',selected.title+' : glisse depuis un coin pour décoller, ou maintiens Espace.');
-    if(selected.kept===false){prize.removeAttribute('tabindex');prize.removeAttribute('role');startDuplicateDestruction();}
+    if(selected.kept===false){prize.removeAttribute('tabindex');prize.removeAttribute('role');prize.setAttribute('aria-label',selected.title+' · doublon converti en champignon');startDuplicateDestruction();}
     else prizePaper=window.StckPaper.attach(prize,prize.querySelector('img'),{rare:selected.rare});
-    $('again').textContent=isDailyPouch?'Ajouter à l’album →':'Pochette suivante · 3 jetons →';
+    $('again').textContent=isDailyPouch?'Ajouter à l’album →':'Pochette suivante · 3 champignons →';
     if(resetFocus)$('again').focus({preventScroll:true});
   }
   async function poke(event) {
@@ -377,7 +377,7 @@
     clearDuplicate();const result=selected,prize=$('prize'),image=prize.querySelector('img');
     duplicateTimer=setTimeout(()=>{
       if(selected!==result||phase!=='revealed')return;
-      if(motion.matches){prize.classList.add('duplicate-fragmenting');if(result.duplicate_tokens){$('duplicateBonus').textContent='+1 jeton';$('duplicateBonus').hidden=false;}return;}
+      if(motion.matches){prize.classList.add('duplicate-fragmenting');if(result.duplicate_tokens){$('duplicateBonus').textContent='+1 champignon';$('duplicateBonus').hidden=false;}return;}
       prize.classList.add('duplicate-cracking');
       const size=600,source=document.createElement('canvas');source.width=source.height=size;
       const sourceCtx=source.getContext('2d');const ratio=image.naturalWidth/image.naturalHeight;
@@ -404,7 +404,7 @@
           ctx.beginPath();ctx.moveTo(-tile/2,-tile/2+p.jitter);ctx.lineTo(tile/2,-tile/2);ctx.lineTo(tile/2-p.jitter,tile/2);ctx.lineTo(-tile/2,tile/2-p.jitter);ctx.closePath();ctx.clip();
           ctx.drawImage(source,p.x,p.y,tile,tile,-tile/2,-tile/2,tile,tile);ctx.restore();
         }
-        if(age>.64&&result.duplicate_tokens){$('duplicateBonus').textContent='+1 jeton';$('duplicateBonus').hidden=false;}
+        if(age>.64&&result.duplicate_tokens){$('duplicateBonus').textContent='+1 champignon';$('duplicateBonus').hidden=false;}
         if(age<1)duplicateFrame=requestAnimationFrame(fragment);else{duplicateCanvas?.remove();duplicateCanvas=null;prize.classList.remove('duplicate-cracking');}
       }
       duplicateFrame=requestAnimationFrame(fragment);

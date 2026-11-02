@@ -1,52 +1,118 @@
 [
   {
-    "id": "5",
+    "id": "11",
+    "key": "amour",
     "title": "Amour",
-    "tone": "#d5ada9",
-    "key": "amour"
+    "tone": "#d5ada9"
   },
   {
-    "id": "1",
-    "title": "Douceurs",
-    "tone": "#aeb8a8",
-    "key": "douceurs"
+    "id": "12",
+    "key": "massage",
+    "title": "Massage",
+    "tone": "#aeb8a8"
   },
   {
-    "id": "2",
-    "title": "Saveurs",
-    "tone": "#c8b795",
-    "key": "saveurs"
+    "id": "13",
+    "key": "soin",
+    "title": "Soin",
+    "tone": "#aeb8a8"
   },
   {
-    "id": "3",
-    "title": "Plaisirs",
-    "tone": "#aab8bf",
-    "key": "plaisirs"
+    "id": "14",
+    "key": "fast-food",
+    "title": "Fast Food",
+    "tone": "#c8b795"
   },
   {
-    "id": "6",
-    "title": "Intimité",
-    "tone": "#c5aaa3",
-    "key": "intimite"
+    "id": "15",
+    "key": "patissier",
+    "title": "Pâtissier",
+    "tone": "#c8b795"
   },
   {
-    "id": "4",
-    "title": "Porn & love",
-    "tone": "#b4abc4",
-    "key": "porn-love"
+    "id": "16",
+    "key": "canape",
+    "title": "Canapé",
+    "tone": "#c8b795"
+  },
+  {
+    "id": "17",
+    "key": "la-pussy",
+    "title": "La pussy",
+    "tone": "#c5aaa3"
+  },
+  {
+    "id": "18",
+    "key": "la-tchole",
+    "title": "La Tchole",
+    "tone": "#c5aaa3"
+  },
+  {
+    "id": "19",
+    "key": "porno",
+    "title": "PORNO",
+    "tone": "#b4abc4"
+  },
+  {
+    "id": "20",
+    "key": "online",
+    "title": "Online",
+    "tone": "#b4abc4"
+  },
+  {
+    "id": "21",
+    "key": "vinted",
+    "title": "Vinted",
+    "tone": "#a8c4ba",
+    "special": true,
+    "logo": "assets/vinted-rubber.webp"
+  },
+  {
+    "id": "22",
+    "key": "passage-du-desir",
+    "title": "Passage du Désir",
+    "tone": "#cfb5c2",
+    "special": true,
+    "logo": "assets/passage-du-desir-rubber.webp"
+  },
+  {
+    "id": "23",
+    "key": "leclerc-multimedia",
+    "title": "Leclerc Multimédia",
+    "tone": "#aebacb",
+    "special": true,
+    "logo": "assets/leclerc-rubber.webp"
+  },
+  {
+    "id": "24",
+    "key": "jouet-enchante",
+    "title": "Le Jouet Enchanté",
+    "tone": "#cab58f",
+    "special": true,
+    "logo": "assets/jouet-enchante-rubber.webp"
+  },
+  {
+    "id": "25",
+    "key": "columbus-cafe",
+    "title": "Columbus — Café",
+    "tone": "#cab58f",
+    "special": true,
+    "logo": "assets/columbus-cafe-rubber.webp"
   },
   {
     "id": "7",
-    "title": "Rouge-gorge",
+    "key": "rouge-gorge",
+    "title": "RougeGorge",
     "tone": "#c68483",
     "special": true,
-    "key": "rouge-gorge"
+    "logo": "assets/rougegorge-rubber.webp"
   },
   {
     "id": "8",
     "key": "monoprix",
     "title": "Monoprix",
     "tone": "#bd8c86",
-    "special": true
+    "special": true,
+    "logo": "assets/monoprix-rubber.webp"
   }
 ]

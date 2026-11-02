@@ -1,4 +1,4 @@
-const CACHE = "stck-v1";
+const CACHE = "stck-v2-polish";
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches

@@ -1,0 +1,582 @@
+/* A sticker discovered on the tree, beneath a veil of forest mist. */
+body.forest-discovery {
+  margin: 0;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #8fa48a;
+  color: #344734;
+}
+
+body.forest-discovery::before,
+body.forest-discovery::after {
+  display: none;
+}
+
+.forest-discovery [hidden] {
+  display: none !important;
+}
+
+.forest-discovery .forest-stage {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #a6b393 url("assets/forest-discovery-v2.webp") center center / cover no-repeat;
+}
+
+.forest-discovery .forest-stage::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(180deg, #23382708, transparent 25%, transparent 67%, #283f2926);
+}
+
+.forest-discovery .topbar {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  min-height: 76px;
+  height: auto;
+  margin: 0;
+  padding: calc(12px + env(safe-area-inset-top)) 18px 12px;
+  border: 0;
+  background: linear-gradient(180deg, #edf0d72e, transparent);
+}
+
+.forest-discovery .topbar .logo {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 122px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  transform: rotate(-3deg);
+}
+
+.forest-discovery .topbar .logo svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 0 #45513725);
+}
+
+.forest-discovery .topbar .back-link,
+.forest-discovery .topbar .account-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #fff9e5e6;
+  border-radius: 15px 17px 14px 16px;
+  background: #f7f2dfdc;
+  box-shadow: 0 2px 0 #52624730;
+  color: #45563e;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.forest-discovery .topbar .back-link {
+  position: static;
+  grid-column: 1;
+  grid-row: 1;
+  order: 0;
+  font: 28px/1 Georgia, serif;
+  transform: rotate(-3deg);
+}
+
+.forest-discovery .topbar .account-button {
+  grid-column: 3;
+  grid-row: 1;
+  opacity: 1;
+  transform: rotate(5deg);
+}
+
+.forest-discovery .tree-sticker {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 48%;
+  display: grid;
+  place-items: center;
+  width: min(43vw, 230px);
+  aspect-ratio: 1;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: none;
+  transform: translate(-50%, -50%) rotate(-5deg);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.forest-discovery .tree-sticker > img,
+.forest-discovery .tree-sticker > .paper-peel-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(1px 3px 1px #28331b38);
+  pointer-events: none;
+}
+
+.forest-discovery .tree-sticker > .paper-peel-canvas,
+.forest-discovery .tree-sticker > .duplicate-shreds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.forest-discovery .tree-sticker > .duplicate-shreds {
+  z-index: 8;
+  pointer-events: none;
+}
+
+.forest-discovery .tree-sticker.paper-peel-ready > img {
+  visibility: hidden;
+}
+
+.forest-discovery .tree-sticker.paper-peeling {
+  cursor: grabbing;
+}
+
+.forest-discovery .tree-sticker.is-rare::before,
+.forest-discovery .tree-sticker.is-rare::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  mask: var(--prize-art) center / contain no-repeat;
+  -webkit-mask: var(--prize-art) center / contain no-repeat;
+}
+
+.forest-discovery .tree-sticker.is-rare::before {
+  background: repeating-linear-gradient(128deg, #8cddd855, #c3a2eb66 18%, #edbcdb55 33%, #f9d99766 49%, #9cddd055 66%, #a4c7ec66 83%, #8cddd855);
+  background-size: 210% 210%;
+  opacity: .36;
+  mix-blend-mode: soft-light;
+  animation: forest-foil-color 6s ease-in-out infinite alternate;
+}
+
+.forest-discovery .tree-sticker.is-rare::after {
+  background: linear-gradient(112deg, transparent 15%, #79dbd81c 30%, #c699ed55 39%, #ffffff88 46%, #fff9df88 49%, #ffd29666 53%, #9bdad755 60%, transparent 78%);
+  background-size: 240% 100%;
+  mix-blend-mode: screen;
+  animation: forest-foil-sweep 4.6s ease-in-out infinite;
+}
+
+.forest-discovery .tree-sticker.paper-peeling::before,
+.forest-discovery .tree-sticker.paper-peeling::after {
+  opacity: 0 !important;
+}
+
+.forest-discovery .tree-sticker.duplicate-fragmenting > img,
+.forest-discovery .tree-sticker.duplicate-fragmenting::before,
+.forest-discovery .tree-sticker.duplicate-fragmenting::after {
+  visibility: hidden;
+}
+
+.forest-discovery .tree-sticker.duplicate-cracking {
+  animation: forest-sticker-rattle 160ms linear 4;
+}
+
+.forest-discovery .tree-sticker.is-excess {
+  pointer-events: none;
+}
+
+.forest-discovery #smokeCanvas {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.forest-discovery #smokeCanvas:active {
+  cursor: grabbing;
+}
+
+.forest-discovery .discovery-panel {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+  width: min(360px, calc(100% - 32px));
+  padding: 15px 18px;
+  border: 1.5px solid #fffae9;
+  border-radius: 23px 20px 25px 21px;
+  background: #faf5e6f2;
+  box-shadow: 0 3px 0 #52634530, 0 12px 28px #253c2420;
+  color: #41523b;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.forest-discovery .discovery-panel .discovery-copy {
+  max-width: 34ch;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #485b40;
+  font-size: 13px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.forest-discovery .discovery-panel .smoke-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  max-width: none;
+  margin: 7px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.forest-discovery .smoke-controls #clearLabel {
+  grid-column: 1 / -1;
+  color: #66705a;
+}
+
+.forest-discovery .smoke-controls .discovery-cost {
+  grid-column: 1 / -1;
+  justify-self: center;
+  text-align: center;
+}
+
+.forest-discovery .smoke-controls progress {
+  width: 100%;
+  height: 9px;
+  border: 0;
+  border-radius: 99px;
+  overflow: hidden;
+  accent-color: #54734d;
+}
+
+.forest-discovery .smoke-controls progress::-webkit-progress-bar {
+  background: #d1d6c6;
+  border-radius: 99px;
+}
+
+.forest-discovery .smoke-controls progress::-webkit-progress-value {
+  background: #54734d;
+  border-radius: 99px;
+}
+
+.forest-discovery .smoke-controls progress::-moz-progress-bar {
+  background: #54734d;
+  border-radius: 99px;
+}
+
+
+
+.forest-discovery .discovery-panel .reveal-info {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.forest-discovery .reveal-info #revealedTitle {
+  margin: 0;
+  color: #344b38;
+  font: italic 500 clamp(23px, 5.6vw, 29px)/1.15 Georgia, serif;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.forest-discovery .reveal-info #revealedRarity {
+  margin: 9px 0 3px;
+  color: #72725d;
+  font-size: 10px;
+  line-height: 1.45;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.forest-discovery .reveal-info .another-pouch {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  margin: 12px 0 0;
+  padding: 13px 15px;
+  border: 2px solid #fff3d4;
+  border-radius: 17px 20px 18px 16px;
+  background: linear-gradient(125deg, #f6a635, #eb872b 62%, #df7528);
+  box-shadow: inset 0 1px 0 #fff1bb9c, 0 3px 0 #a55b2b4d;
+  color: #3f301e;
+  font: 750 14px/1.35 system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.forest-discovery .reveal-info .another-pouch:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 #fff1bb9c, 0 1px 0 #a55b2b4d;
+}
+
+.forest-discovery .reveal-info .duplicate-bonus {
+  width: fit-content;
+  margin: 9px auto 0;
+  padding: 4px 11px;
+  border-radius: 99px;
+  background: #dce7cf;
+  color: #466d3f;
+  font: 800 18px/1.2 system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  animation: forest-token-rise 350ms cubic-bezier(.2,.7,.3,1) both;
+}
+
+.forest-discovery .discovery-panel button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.forest-discovery .topbar :is(a, button):focus-visible,
+.forest-discovery .discovery-panel button:focus-visible,
+.forest-discovery .tree-sticker:focus-visible {
+  outline: 3px solid #3f633c;
+  outline-offset: 4px;
+}
+
+@keyframes forest-foil-color {
+  from { background-position: 0% 20%; }
+  to { background-position: 100% 80%; }
+}
+
+@keyframes forest-foil-sweep {
+  0% { background-position: 120% 0; opacity: .24; }
+  38% { opacity: .62; }
+  75%, 100% { background-position: -90% 0; opacity: .3; }
+}
+
+@keyframes forest-sticker-rattle {
+  0%, 100% { transform: translate(-50%, -50%) rotate(-5deg); }
+  25% { transform: translate(-50%, -50%) rotate(-8deg) scale(.98); }
+  75% { transform: translate(-50%, -50%) rotate(-2deg) scale(1.025); }
+}
+
+@keyframes forest-token-rise {
+  from { opacity: 0; translate: 0 6px; scale: .92; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .forest-discovery .reveal-info .another-pouch:hover {
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 #fff1bb9c, 0 4px 0 #a55b2b4d;
+  }
+
+
+}
+
+@media (max-width: 370px) {
+  .forest-discovery .topbar { gap: 9px; padding-inline: 13px; }
+  .forest-discovery .discovery-panel { width: calc(100% - 24px); padding-inline: 14px; }
+  .forest-discovery .reveal-info .another-pouch { font-size: 13px; }
+}
+
+@media (max-height: 620px) {
+  .forest-discovery .topbar { min-height: 66px; padding-block: calc(8px + env(safe-area-inset-top)) 8px; }
+  .forest-discovery .topbar .logo { width: 108px; }
+  .forest-discovery .tree-sticker { top: 40%; width: min(40vw, 180px); }
+  .forest-discovery .discovery-panel { bottom: max(12px, calc(env(safe-area-inset-bottom) + 6px)); padding-block: 12px; }
+  .forest-discovery .discovery-copy { font-size: 12px; }
+  .forest-discovery .reveal-info #revealedTitle { font-size: 23px; }
+  .forest-discovery .reveal-info .another-pouch { min-height: 46px; margin-top: 9px; }
+}
+
+@media (min-width: 600px) and (max-height: 520px) {
+  .forest-discovery .tree-sticker { top: 46%; width: min(28vw, 42svh, 170px); }
+  .forest-discovery .discovery-panel { left: auto; right: 16px; width: min(300px, 36vw); transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forest-discovery .tree-sticker::before,
+  .forest-discovery .tree-sticker::after,
+  .forest-discovery .tree-sticker.duplicate-cracking,
+  .forest-discovery .reveal-info .duplicate-bonus { animation: none; }
+  .forest-discovery .tree-sticker.is-rare::after { background-position: 45% 50%; opacity: .48; }
+  .forest-discovery .reveal-info .another-pouch { transition: none; }
+}
+body.forest-discovery .forest-stage { background-image:url('assets/forest-discovery-v2.webp'); }
+body.forest-discovery .tree-sticker { width:var(--discovery-size,44px); }
+body.forest-discovery #revealedTitle { margin:0; font:italic 500 28px/1.15 Georgia,serif; color:#354c39; letter-spacing:-.035em; }
+body.forest-discovery .discovery-cost { margin:4px 0 0; font-size:10px; color:#748068; }
+body.forest-discovery[data-discovery-phase='revealed'] .tree-sticker { touch-action:none; cursor:grab; }
+@media(max-width:699px) and (orientation:portrait){ body.forest-discovery .forest-stage { background-size:100% 100%; } }
+
+/* Every portrait view keeps all three trunks available for discovery. */
+@media (orientation: portrait) {
+  body.forest-discovery .forest-stage { background-size: 100% 100%; }
+}
+
+.forest-discovery .empty-info h1 {
+  margin: 0;
+  color: #40573e;
+  font: italic 500 29px/1.15 Georgia, serif;
+  letter-spacing: -.035em;
+}
+
+.forest-discovery .empty-info > p {
+  max-width: 29ch;
+  margin: 10px auto 0;
+  color: #6c775e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.forest-discovery .empty-info .empty-free {
+  margin-top: 5px;
+  color: #56704c;
+  font-size: 10px;
+}
+
+.forest-discovery #advanceForest {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 14px;
+  padding: 13px 15px;
+  border: 2px solid #fff3d4;
+  border-radius: 17px 20px 18px 16px;
+  background: linear-gradient(125deg, #f6a635, #eb872b 62%, #df7528);
+  box-shadow: inset 0 1px 0 #fff1bb9c, 0 3px 0 #a55b2b4d;
+  color: #3f301e;
+  font: 750 14px/1.35 system-ui, sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.forest-discovery #advanceForest:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 #fff1bb9c, 0 1px 0 #a55b2b4d;
+}
+
+.forest-discovery .forest-stage.is-advancing {
+  animation: forest-next-clearing 650ms ease-out both;
+}
+
+.forest-discovery .forest-stage.is-advancing::before {
+  position: absolute;
+  z-index: 32;
+  inset: 0;
+  content: "";
+  background: #eef0df;
+  pointer-events: none;
+  animation: forest-next-veil 650ms ease-out both;
+}
+
+.forest-discovery .forest-guardian {
+  position: absolute;
+  z-index: 25;
+  left: max(20px, 5vw);
+  bottom: calc(var(--forest-panel-clearance, 200px) + 12px);
+  width: clamp(78px, 14vw, 118px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.forest-discovery .forest-guardian img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 1px #30462426);
+}
+
+.forest-discovery .forest-guardian.is-receiving img {
+  animation: forest-guardian-thanks 660ms ease-in-out both;
+}
+
+.forest-discovery .guardian-mushroom {
+  position: fixed;
+  z-index: 45;
+  display: block;
+  width: 20px;
+  height: 24px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 1px #40523530);
+}
+
+.forest-discovery .guardian-mushroom svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes forest-next-clearing {
+  from { background-position: calc(50% + 14px) center; }
+  to { background-position: center center; }
+}
+
+@keyframes forest-next-veil {
+  from { opacity: .65; }
+  to { opacity: 0; }
+}
+
+@keyframes forest-guardian-thanks {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  30% { transform: rotate(-3deg) translateY(-3px); }
+  65% { transform: rotate(3deg) translateY(-1px); }
+}
+
+@media (min-width: 600px) and (max-height: 520px) {
+  .forest-discovery .forest-guardian { width: 80px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forest-discovery .forest-stage.is-advancing,
+  .forest-discovery .forest-stage.is-advancing::before,
+  .forest-discovery .forest-guardian.is-receiving img { animation: none; }
+  .forest-discovery .forest-stage.is-advancing::before { opacity: 0; }
+}
+
+/* Instructions and status let the wiping gesture reach the mist beneath them. */
+.forest-discovery .topbar,
+.forest-discovery .discovery-panel { pointer-events:none; }
+.forest-discovery .topbar a,
+.forest-discovery .topbar button,
+.forest-discovery .discovery-panel button { pointer-events:auto; }
+.forest-discovery #smokeCanvas:focus-visible { outline:2px dashed #526d4977; outline-offset:-4px; }
